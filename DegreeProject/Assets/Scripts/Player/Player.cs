@@ -308,20 +308,8 @@ public class Player : NetworkBehaviour
         }
     }
 
-    //public void ChangePlayerSprite(UnityEngine.Sprite sprite)
-    //{
-    //    spriteRenderer.sprite = sprite;
-    //}
-
     #region Command Functions
 
-    //[Command]
-    //public void CmdChangePlayerSprite(UnityEngine.Sprite sprite)
-    //{
-    //    ChangePlayerSprite(sprite);
-    //    RpcChangePlayerSprite(sprite);
-    //}
-    
     [Command]
     public void CmdDashCooldown()
     {
@@ -368,13 +356,7 @@ public class Player : NetworkBehaviour
     #endregion Command Functions
 
     #region ClientRpc Functions
-    
-    //[ClientRpc]
-    //public void RpcChangePlayerSprite(UnityEngine.Sprite sprite)
-    //{
-    //    ChangePlayerSprite(sprite);
-    //}
-
+   
     [ClientRpc]
     public void RpcDashCooldown()
     {
