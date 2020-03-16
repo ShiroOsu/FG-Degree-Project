@@ -25,7 +25,6 @@ public class PlayerController : RaycastController
     {
         base.Start();
         collisionInfo.forwardDirection = 1;
-        collisionInfo.upwardsDirection = 1;
     }
 
     public void Move(Vector3 velocity)
@@ -42,9 +41,9 @@ public class PlayerController : RaycastController
         if (velocity.y != 0)
         {
             collisionInfo.upwardsDirection = (int)Mathf.Sign(velocity.y);
-            VerticalCollision(ref velocity);
         }
 
+        VerticalCollision(ref velocity);
         HorizontalCollision(ref velocity);
 
         transform.Translate(velocity);
@@ -100,7 +99,7 @@ public class PlayerController : RaycastController
             }
 
             // Seems like the ray cast gets to long when landing from a high position,
-            // and resetting the length of the ray cast doesn't seem to help.
+            // and resetting the length of the ray doesn't seem to help.
             // So when the ray cast does not hit, and the ray is incredibly long
             // while collision under the player is false, set it to true.
             if (!raycastHit && rayLength > 0.3f && !collisionInfo.under)

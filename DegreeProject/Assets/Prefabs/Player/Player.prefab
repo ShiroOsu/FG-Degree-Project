@@ -202,14 +202,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4763a9ab5669cbd4bafb4a369d486c5a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  horizontalRayCount: 4
-  verticalRayCount: 4
   collisionMask:
     serializedVersion: 2
     m_Bits: 256
-  horizontalRaySpacing: 0
-  verticalRaySpacing: 0
-  boxCollider: {fileID: 0}
 --- !u!114 &3242851751047014427
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -228,7 +223,8 @@ MonoBehaviour:
   playerCamera: {fileID: 4345298095977105852}
   animator: {fileID: 95346456782871180}
   spriteRenderer: {fileID: 212259381048184306}
-  playerBody2D: {fileID: 0}
+  playerBody2D: {fileID: 50512961935941442}
+  spawnPoint: {fileID: 0}
   health: 10
   damage: 2
   maxJumpHeight: 5
@@ -240,7 +236,6 @@ MonoBehaviour:
   maxGravity: -20
   accelerationTimeAirborne: 0.2
   accelerationTimeGrounded: 0.1
-  spawnPoint: {fileID: 0}
 --- !u!114 &8313396273835717485
 MonoBehaviour:
   m_ObjectHideFlags: 0
