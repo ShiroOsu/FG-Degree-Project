@@ -5,7 +5,8 @@ using Mirror;
 [RequireComponent(typeof(PlayerController))]
 public class Player : NetworkBehaviour
 {
-    [Header("Player Settings")]
+    // All of these could be made private
+    [Header("Player Components")]
     public PlayerController controller;
     public Camera playerCamera;
     public Animator animator;
@@ -13,7 +14,7 @@ public class Player : NetworkBehaviour
     public Rigidbody2D playerBody2D;
     public Transform spawnPoint;
 
-    [Header("Player's health & Damage")]
+    [Header("Health & Damage")]
     [SyncVar] public float health = 10f;
     public float damage = 2f;
 
@@ -45,12 +46,13 @@ public class Player : NetworkBehaviour
 
     private float timeStamp;
 
-    [SyncVar] private Vector2 directionalInput;
-    [SyncVar] private Vector2 velocity;
+    private Vector2 directionalInput;
+    private Vector2 velocity;
 
     private bool canDash = true;
     private bool isDead = false;
 
+    // Instead of color, "Player 1, Player 2" or etc.
     private List<Color> colorList = new List<Color>
     {
         Color.green,
