@@ -1,11 +1,11 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using System.Collections;
 using Mirror;
 
 [RequireComponent(typeof(PlayerController))]
 public class Player : NetworkBehaviour
 {
-    // All of these could be made private
     [Header("Player Components")]
     public PlayerController controller;
     public Camera playerCamera;
@@ -44,13 +44,13 @@ public class Player : NetworkBehaviour
     private float minJumpVelocity;
     private float gravity;
 
-    private float timeStamp;
-
     private Vector2 directionalInput;
     private Vector2 velocity;
 
+    private IEnumerator dashCorotine;
     private bool canDash = true;
     private bool isDead = false;
+    private bool isOnGround = false;
 
     // Instead of color, "Player 1, Player 2" or etc.
     private List<Color> colorList = new List<Color>
@@ -67,10 +67,10 @@ public class Player : NetworkBehaviour
 
     private void Start()
     {
-        Setup();
+        SetupComponents();
     }
 
-    private void Setup()
+    private void SetupComponents()
     {
         if (spawnPoint)
         {
@@ -124,28 +124,30 @@ public class Player : NetworkBehaviour
 
     private void Update()
     {
-        if (isLocalPlayer)
-        {
-            CalculateVelocity();
-        }
+        controller.UpdateCollision(velocity * Time.deltaTime, directionalInput);
+        CalculateVelocity();
+        controller.Move(velocity * Time.deltaTime);
     }
 
     private void CalculateVelocity()
     {
         float targetVelocityX = directionalInput.x * speed;
         velocity.x = Mathf.SmoothDamp(velocity.x, targetVelocityX, ref velocityXSmoothing,
-            (controller.collisionInfo.under) ? accelerationTimeGrounded : accelerationTimeAirborne);
+            (controller.collisionsInfo.below) ? accelerationTimeGrounded : accelerationTimeAirborne);
 
-        bool hittedCeiling = controller.collisionInfo.above ? true : false;
+        bool hitCeiling = controller.collisionsInfo.above ? true : false;
 
-        if (hittedCeiling)
+        if (hitCeiling)
         {
-            playerBody2D.AddForce(Vector2.down, ForceMode2D.Impulse);
+            velocity.y = velocity.y > Mathf.Abs(gravity * 0.3f) ? gravity * 0.3f : -velocity.y;
         }
 
-        if (!controller.collisionInfo.under)
+        if (!controller.collisionsInfo.below)
         {
-            JumpAnimation();
+            if (!AnimationIsPlaying(StringData.attack))
+            {
+                JumpAnimation();
+            }
 
             velocity.y += gravity * Time.deltaTime;
 
@@ -153,18 +155,36 @@ public class Player : NetworkBehaviour
             {
                 velocity.y = maxGravity;
             }
+
+            isOnGround = false;
+        }
+        else
+        {
+            if (velocity.y <= 0)
+            {
+                if (AnimationIsPlaying(StringData.jump))
+                {
+                    animator.StopPlayback();
+                }
+
+                animator.SetBool(StringData.grounded, true);
+                velocity.y = 0;
+                isOnGround = true;
+            }
+        }
+
+        if (controller.collisionsInfo.right)
+        {
+            velocity.x = Mathf.Clamp(velocity.x, float.NegativeInfinity, 0);
+        }
+        if (controller.collisionsInfo.left)
+        {
+            velocity.x = Mathf.Clamp(velocity.x, 0, float.PositiveInfinity);
         }
     }
 
     private void FixedUpdate()
     {
-        if (isLocalPlayer)
-        {
-            controller.Move(velocity * Time.fixedDeltaTime);
-
-            CmdDashCooldown();
-        }
-
         FlipSpriteX();
 
         IdleAnimations();
@@ -194,7 +214,7 @@ public class Player : NetworkBehaviour
 
     private void OnJumpInputDown()
     {
-        if (controller.collisionInfo.under)
+        if (isOnGround)
         {
             velocity.y = maxJumpVelocity;
 
@@ -216,6 +236,18 @@ public class Player : NetworkBehaviour
         {
             animator.SetTrigger(StringData.attack);
         }
+    }
+
+    private void DashCooldown()
+    {
+        dashCorotine = DashCooldownTimer(dashCooldown);
+        StartCoroutine(dashCorotine);
+    }
+
+    private IEnumerator DashCooldownTimer(float cooldownTime)
+    {
+        yield return new WaitForSeconds(cooldownTime);
+        canDash = true;
     }
 
     public void OnEscapeInputDown()
@@ -241,21 +273,7 @@ public class Player : NetworkBehaviour
         {
             playerBody2D.AddForce(directionalInput.normalized * dashForce, ForceMode2D.Impulse);
             canDash = false;
-            timeStamp = Time.time + dashCooldown;
-        }
-    }
-
-    private void DashCooldown()
-    {
-        if (!canDash)
-        {
-            if ((timeStamp - Time.time) > -1f)
-            {
-                if (timeStamp <= Time.time)
-                {
-                    canDash = true;
-                }
-            }
+            DashCooldown();
         }
     }
 
@@ -266,7 +284,7 @@ public class Player : NetworkBehaviour
             animator.SetInteger(StringData.animState, 0); // Idle animation
         }
 
-        if (controller.collisionInfo.under)
+        if (controller.collisionsInfo.below)
         {
             animator.SetBool(StringData.grounded, true); // Standing animation (Idle)
         }
@@ -295,7 +313,7 @@ public class Player : NetworkBehaviour
                 animator.SetTrigger(StringData.death);
 
                 // We want to be able to re-spawn the player after it has died,
-                // see we only unspawn it from the server.
+                // see we only despawn it from the server.
                 NetworkServer.UnSpawn(gameObject);
                 
                 //if (base.hasAuthority)
@@ -309,13 +327,6 @@ public class Player : NetworkBehaviour
     }
 
     #region Command Functions
-
-    [Command]
-    public void CmdDashCooldown()
-    {
-        DashCooldown();
-        RpcDashCooldown();
-    }
 
     [Command]
     public void CmdOnShiftInputDown()
@@ -358,12 +369,6 @@ public class Player : NetworkBehaviour
     #region ClientRpc Functions
 
     [ClientRpc]
-    private void RpcDashCooldown()
-    {
-        DashCooldown();
-    }
-
-    [ClientRpc]
     private void RpcOnShiftInputDown()
     {
         OnShiftInputDown();
@@ -394,7 +399,6 @@ public class Player : NetworkBehaviour
     }
 
     #endregion ClientRpc Functions
-
 }
 
 

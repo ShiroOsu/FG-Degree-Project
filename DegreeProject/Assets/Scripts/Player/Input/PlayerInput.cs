@@ -17,7 +17,7 @@ public class PlayerInput : NetworkBehaviour
     {
         if (isLocalPlayer)
         {
-            Vector2 directionalInput = new Vector2(Input.GetAxis(StringData.horizontal), Input.GetAxis(StringData.vertical));
+            Vector2 directionalInput = new Vector2(Input.GetAxisRaw(StringData.horizontal), Input.GetAxisRaw(StringData.vertical));
             player.CmdSetDirectionalInput(directionalInput);
 
             if (Input.GetKey(KeyCode.Escape))
