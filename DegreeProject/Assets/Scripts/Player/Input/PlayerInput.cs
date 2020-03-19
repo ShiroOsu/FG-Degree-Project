@@ -1,16 +1,14 @@
 ﻿using UnityEngine;
 using Mirror;
 
+[RequireComponent(typeof(Player))]
 public class PlayerInput : NetworkBehaviour
 {
-    Player player;
+    private Player player;
 
-    private void Start()
+    private void Awake()
     {
-        if (!player)
-        {
-            player = GetComponent<Player>();
-        }
+        player = GetComponent<Player>();
     }
 
     private void Update()

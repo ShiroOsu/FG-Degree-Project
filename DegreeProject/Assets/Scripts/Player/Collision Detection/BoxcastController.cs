@@ -59,8 +59,8 @@ public class BoxcastController : MonoBehaviour
 
         if (hit)
         {
-            collisionsInfo.left = directionX == 1;
-            collisionsInfo.right = directionX == -1;
+            collisionsInfo.right = directionX == 1;
+            collisionsInfo.left = directionX == -1;
         }
     }
 

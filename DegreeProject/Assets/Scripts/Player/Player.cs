@@ -124,6 +124,18 @@ public class Player : NetworkBehaviour
 
     private void Update()
     {
+        if (hasAuthority)
+        {
+            CmdUpdateMovement();
+        }
+
+        FlipSpriteX();
+
+        IdleAnimations();
+    }
+
+    private void UpdateMovement()
+    {
         controller.UpdateCollision(velocity * Time.deltaTime, directionalInput);
         CalculateVelocity();
         controller.Move(velocity * Time.deltaTime);
@@ -144,9 +156,14 @@ public class Player : NetworkBehaviour
 
         if (!controller.collisionsInfo.below)
         {
-            if (!AnimationIsPlaying(StringData.attack))
+            // Attack in air
+            if (!AnimationIsPlaying(StringData.attack) && AnimationIsPlaying(StringData.jump))
             {
-                JumpAnimation();
+                if (Input.GetMouseButtonDown(0))
+                {
+                    animator.StopPlayback();
+                    animator.SetTrigger(StringData.attack);
+                }
             }
 
             velocity.y += gravity * Time.deltaTime;
@@ -173,6 +190,7 @@ public class Player : NetworkBehaviour
             }
         }
 
+        // Stop player from shaking when moving towards a wall
         if (controller.collisionsInfo.right)
         {
             velocity.x = Mathf.Clamp(velocity.x, float.NegativeInfinity, 0);
@@ -181,13 +199,6 @@ public class Player : NetworkBehaviour
         {
             velocity.x = Mathf.Clamp(velocity.x, 0, float.PositiveInfinity);
         }
-    }
-
-    private void FixedUpdate()
-    {
-        FlipSpriteX();
-
-        IdleAnimations();
     }
 
     private void FlipSpriteX()
@@ -284,7 +295,7 @@ public class Player : NetworkBehaviour
             animator.SetInteger(StringData.animState, 0); // Idle animation
         }
 
-        if (controller.collisionsInfo.below)
+        if (controller.collisionsInfo.below || isOnGround)
         {
             animator.SetBool(StringData.grounded, true); // Standing animation (Idle)
         }
@@ -315,7 +326,7 @@ public class Player : NetworkBehaviour
                 // We want to be able to re-spawn the player after it has died,
                 // see we only despawn it from the server.
                 NetworkServer.UnSpawn(gameObject);
-                
+
                 //if (base.hasAuthority)
                 //{
                 //    //CmdRespawn();
@@ -327,6 +338,13 @@ public class Player : NetworkBehaviour
     }
 
     #region Command Functions
+
+    [Command]
+    private void CmdUpdateMovement()
+    {
+        UpdateMovement();
+        RpcUpdateMovement();
+    }
 
     [Command]
     public void CmdOnShiftInputDown()
@@ -356,7 +374,6 @@ public class Player : NetworkBehaviour
         RpcOnJumpInputDown();
     }
 
-    // Seems to work without Command/Rpc
     [Command]
     public void CmdOnJumpInputUp()
     {
@@ -367,6 +384,12 @@ public class Player : NetworkBehaviour
     #endregion Command Functions
 
     #region ClientRpc Functions
+
+    [ClientRpc]
+    private void RpcUpdateMovement()
+    {
+        UpdateMovement();
+    }
 
     [ClientRpc]
     private void RpcOnShiftInputDown()
