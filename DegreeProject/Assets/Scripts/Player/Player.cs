@@ -81,12 +81,6 @@ public class Player : NetworkBehaviour
             transform.position = new Vector3(0, 10, 0);
         }
 
-        // If gravity happened to be a positive value, invert it.
-        if (gravity > 0)
-        {
-            gravity *= -1;
-        }
-
         if (!controller)
         {
             controller = GetComponent<PlayerController>();
