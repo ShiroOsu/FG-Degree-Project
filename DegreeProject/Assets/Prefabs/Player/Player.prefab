@@ -18,6 +18,7 @@ GameObject:
   - component: {fileID: 8615055910702153715}
   - component: {fileID: 3242851751047014427}
   - component: {fileID: 8313396273835717485}
+  - component: {fileID: 756974415637189492}
   m_Layer: 9
   m_Name: Player
   m_TagString: Player
@@ -33,7 +34,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1689866831511430}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -5, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_Children:
   - {fileID: 2371345532132213390}
@@ -158,8 +159,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   syncMode: 0
-  syncInterval: 0.1
-  clientAuthority: 1
+  syncInterval: 0.016
+  clientAuthority: 0
   localPositionSensitivity: 0.01
   localRotationSensitivity: 0.01
   localScaleSensitivity: 0.01
@@ -202,14 +203,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4763a9ab5669cbd4bafb4a369d486c5a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  horizontalRayCount: 4
-  verticalRayCount: 4
   collisionMask:
     serializedVersion: 2
     m_Bits: 256
-  horizontalRaySpacing: 0
-  verticalRaySpacing: 0
-  boxCollider: {fileID: 0}
 --- !u!114 &3242851751047014427
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -228,7 +224,8 @@ MonoBehaviour:
   playerCamera: {fileID: 4345298095977105852}
   animator: {fileID: 95346456782871180}
   spriteRenderer: {fileID: 212259381048184306}
-  playerBody2D: {fileID: 0}
+  playerBody2D: {fileID: 50512961935941442}
+  spawnPoint: {fileID: 0}
   health: 10
   damage: 2
   maxJumpHeight: 5
@@ -240,7 +237,6 @@ MonoBehaviour:
   maxGravity: -20
   accelerationTimeAirborne: 0.2
   accelerationTimeGrounded: 0.1
-  spawnPoint: {fileID: 0}
 --- !u!114 &8313396273835717485
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -255,6 +251,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
+--- !u!114 &756974415637189492
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1689866831511430}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee6d1e52b099da743a5bee385a737a59, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  collisionMask:
+    serializedVersion: 2
+    m_Bits: 256
 --- !u!1 &7789064623791806115
 GameObject:
   m_ObjectHideFlags: 0

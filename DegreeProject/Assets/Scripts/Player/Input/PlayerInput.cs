@@ -1,23 +1,21 @@
 ﻿using UnityEngine;
 using Mirror;
 
+[RequireComponent(typeof(Player))]
 public class PlayerInput : NetworkBehaviour
 {
-    Player player;
+    private Player player;
 
-    private void Start()
+    private void Awake()
     {
-        if (!player)
-        {
-            player = GetComponent<Player>();
-        }
+        player = GetComponent<Player>();
     }
 
     private void Update()
     {
         if (isLocalPlayer)
         {
-            Vector2 directionalInput = new Vector2(Input.GetAxis(StringData.horizontal), Input.GetAxis(StringData.vertical));
+            Vector2 directionalInput = new Vector2(Input.GetAxisRaw(StringData.horizontal), Input.GetAxisRaw(StringData.vertical));
             player.CmdSetDirectionalInput(directionalInput);
 
             if (Input.GetKey(KeyCode.Escape))

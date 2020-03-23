@@ -1,26 +1,20 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using System.Collections;
 using Mirror;
 
 [RequireComponent(typeof(PlayerController))]
 public class Player : NetworkBehaviour
 {
-    [Header("Player Controller")]
+    [Header("Player Components")]
     public PlayerController controller;
-
-    [Header("Player Camera")]
     public Camera playerCamera;
-
-    [Header("Player Animator")]
     public Animator animator;
-
-    [Header("Player Sprite Renderer")]
     public SpriteRenderer spriteRenderer;
-
-    [Header("Player Rigidbody2D"),]
     public Rigidbody2D playerBody2D;
+    public Transform spawnPoint;
 
-    [Header("Player's health & Damage")]
+    [Header("Health & Damage")]
     [SyncVar] public float health = 10f;
     public float damage = 2f;
 
@@ -32,9 +26,9 @@ public class Player : NetworkBehaviour
     [Header("Movement Speed")]
     public float speed = 6f;
 
-    [Header("Dash Force")] 
+    [Header("Ability Settings")]
     public float dashForce = 10f;
-    
+
     [Tooltip("Dash cooldown in seconds")]
     public float dashCooldown = 10f;
 
@@ -46,21 +40,19 @@ public class Player : NetworkBehaviour
     public float accelerationTimeGrounded = 0.1f;
     private float velocityXSmoothing;
 
-    [Header("Spawn point for player")]
-    public Transform spawnPoint;
-
     private float maxJumpVelocity;
     private float minJumpVelocity;
     private float gravity;
 
-    private float timeStamp;
+    private Vector2 directionalInput;
+    private Vector2 velocity;
 
-    [SyncVar] private Vector2 directionalInput;
-    [SyncVar] private Vector2 velocity;
-
+    private IEnumerator dashCorotine;
     private bool canDash = true;
     private bool isDead = false;
+    private bool isOnGround = false;
 
+    // Instead of color, "Player 1, Player 2" or etc.
     private List<Color> colorList = new List<Color>
     {
         Color.green,
@@ -75,10 +67,10 @@ public class Player : NetworkBehaviour
 
     private void Start()
     {
-        Setup();
+        SetupComponents();
     }
 
-    private void Setup()
+    private void SetupComponents()
     {
         if (spawnPoint)
         {
@@ -87,12 +79,6 @@ public class Player : NetworkBehaviour
         else
         {
             transform.position = new Vector3(0, 10, 0);
-        }
-
-        // If gravity happened to be a positive value, invert it.
-        if (gravity > 0)
-        {
-            gravity *= -1;
         }
 
         if (!controller)
@@ -132,25 +118,47 @@ public class Player : NetworkBehaviour
 
     private void Update()
     {
-        CalculateVelocity();
+        if (hasAuthority)
+        {
+            CmdUpdateMovement();
+        }
+
+        FlipSpriteX();
+
+        IdleAnimations();
     }
 
-    public void CalculateVelocity()
+    private void UpdateMovement()
+    {
+        controller.UpdateCollision(velocity * Time.deltaTime, directionalInput);
+        CalculateVelocity();
+        controller.Move(velocity * Time.deltaTime);
+    }
+
+    private void CalculateVelocity()
     {
         float targetVelocityX = directionalInput.x * speed;
         velocity.x = Mathf.SmoothDamp(velocity.x, targetVelocityX, ref velocityXSmoothing,
-            (controller.collisionInfo.under) ? accelerationTimeGrounded : accelerationTimeAirborne);
+            (controller.collisionsInfo.below) ? accelerationTimeGrounded : accelerationTimeAirborne);
 
-        bool hittedCeiling = controller.collisionInfo.above ? true : false;
+        bool hitCeiling = controller.collisionsInfo.above ? true : false;
 
-        if (hittedCeiling)
+        if (hitCeiling)
         {
-            playerBody2D.AddForce(Vector2.down, ForceMode2D.Impulse);
+            velocity.y = velocity.y > Mathf.Abs(gravity * 0.3f) ? gravity * 0.3f : -velocity.y;
         }
 
-        if (!controller.collisionInfo.under)
+        if (!controller.collisionsInfo.below)
         {
-            JumpAnimation();
+            // Attack in air
+            if (!AnimationIsPlaying(StringData.attack) && AnimationIsPlaying(StringData.jump))
+            {
+                if (Input.GetMouseButtonDown(0))
+                {
+                    animator.StopPlayback();
+                    animator.SetTrigger(StringData.attack);
+                }
+            }
 
             velocity.y += gravity * Time.deltaTime;
 
@@ -158,24 +166,36 @@ public class Player : NetworkBehaviour
             {
                 velocity.y = maxGravity;
             }
+
+            isOnGround = false;
         }
-    }
-
-    private void FixedUpdate()
-    {
-        controller.Move(velocity * Time.fixedDeltaTime);
-
-        FlipSpriteX();
-
-        IdleAnimations();
-
-        if (isLocalPlayer)
+        else
         {
-            CmdDashCooldown();
+            if (velocity.y <= 0)
+            {
+                if (AnimationIsPlaying(StringData.jump))
+                {
+                    animator.StopPlayback();
+                }
+
+                animator.SetBool(StringData.grounded, true);
+                velocity.y = 0;
+                isOnGround = true;
+            }
+        }
+
+        // Stop player from shaking when moving towards a wall
+        if (controller.collisionsInfo.right)
+        {
+            velocity.x = Mathf.Clamp(velocity.x, float.NegativeInfinity, 0);
+        }
+        if (controller.collisionsInfo.left)
+        {
+            velocity.x = Mathf.Clamp(velocity.x, 0, float.PositiveInfinity);
         }
     }
 
-    public void FlipSpriteX()
+    private void FlipSpriteX()
     {
         if (Mathf.Abs(directionalInput.x) > Mathf.Epsilon)
         {
@@ -192,14 +212,14 @@ public class Player : NetworkBehaviour
         }
     }
 
-    public void SetDirectionalInput(Vector2 directionalInput)
+    private void SetDirectionalInput(Vector2 directionalInput)
     {
         this.directionalInput = directionalInput;
     }
 
-    public void OnJumpInputDown()
+    private void OnJumpInputDown()
     {
-        if (controller.collisionInfo.under)
+        if (isOnGround)
         {
             velocity.y = maxJumpVelocity;
 
@@ -207,7 +227,7 @@ public class Player : NetworkBehaviour
         }
     }
 
-    public void OnJumpInputUp()
+    private void OnJumpInputUp()
     {
         if (velocity.y > minJumpVelocity)
         {
@@ -215,12 +235,24 @@ public class Player : NetworkBehaviour
         }
     }
 
-    public void OnAttackInputDown()
+    private void OnAttackInputDown()
     {
         if (!AnimationIsPlaying(StringData.attack))
         {
-            animator.SetTrigger(StringData.attack); 
+            animator.SetTrigger(StringData.attack);
         }
+    }
+
+    private void DashCooldown()
+    {
+        dashCorotine = DashCooldownTimer(dashCooldown);
+        StartCoroutine(dashCorotine);
+    }
+
+    private IEnumerator DashCooldownTimer(float cooldownTime)
+    {
+        yield return new WaitForSeconds(cooldownTime);
+        canDash = true;
     }
 
     public void OnEscapeInputDown()
@@ -228,56 +260,42 @@ public class Player : NetworkBehaviour
         Debug.Log("GameMenu?");
     }
 
-    public bool AnimationIsPlaying(string state)
+    private bool AnimationIsPlaying(string state)
     {
         return animator.GetCurrentAnimatorStateInfo(0).IsName(state);
     }
 
     // Falling / Jump
-    public void JumpAnimation()
+    private void JumpAnimation()
     {
         animator.SetTrigger(StringData.jump); // Jump animation
         animator.SetBool(StringData.grounded, false); // To continue being in jump animation set grounded to false
     }
 
-    public void OnShiftInputDown()
+    private void OnShiftInputDown()
     {
         if (canDash)
         {
             playerBody2D.AddForce(directionalInput.normalized * dashForce, ForceMode2D.Impulse);
             canDash = false;
-            timeStamp = Time.time + dashCooldown;
+            DashCooldown();
         }
     }
 
-    public void DashCooldown()
-    {
-        if (!canDash)
-        {
-            if ((timeStamp - Time.time) > -1f)
-            {
-                if (timeStamp <= Time.time)
-                {
-                    canDash = true;
-                }
-            }
-        }
-    }
-
-    public void IdleAnimations()
+    private void IdleAnimations()
     {
         if (Mathf.Abs(directionalInput.x) < Mathf.Epsilon)
         {
             animator.SetInteger(StringData.animState, 0); // Idle animation
         }
 
-        if (controller.collisionInfo.under)
+        if (controller.collisionsInfo.below || isOnGround)
         {
             animator.SetBool(StringData.grounded, true); // Standing animation (Idle)
         }
     }
 
-    public void TakeDamage(float damage)
+    private void TakeDamage(float damage)
     {
         health -= damage;
 
@@ -290,7 +308,7 @@ public class Player : NetworkBehaviour
         }
     }
 
-    public void ShouldDie()
+    private void ShouldDie()
     {
         if (isDead)
         {
@@ -300,8 +318,13 @@ public class Player : NetworkBehaviour
                 animator.SetTrigger(StringData.death);
 
                 // We want to be able to re-spawn the player after it has died,
-                // see we only unspawn it from the server.
+                // see we only despawn it from the server.
                 NetworkServer.UnSpawn(gameObject);
+
+                //if (base.hasAuthority)
+                //{
+                //    //CmdRespawn();
+                //}
 
                 // Spectate alive player; ?
             }
@@ -311,10 +334,10 @@ public class Player : NetworkBehaviour
     #region Command Functions
 
     [Command]
-    public void CmdDashCooldown()
+    private void CmdUpdateMovement()
     {
-        DashCooldown();
-        RpcDashCooldown();
+        UpdateMovement();
+        RpcUpdateMovement();
     }
 
     [Command]
@@ -345,7 +368,6 @@ public class Player : NetworkBehaviour
         RpcOnJumpInputDown();
     }
 
-    // Seems to work without Command/Rpc
     [Command]
     public void CmdOnJumpInputUp()
     {
@@ -356,45 +378,44 @@ public class Player : NetworkBehaviour
     #endregion Command Functions
 
     #region ClientRpc Functions
-   
+
     [ClientRpc]
-    public void RpcDashCooldown()
+    private void RpcUpdateMovement()
     {
-        DashCooldown();
+        UpdateMovement();
     }
 
     [ClientRpc]
-    public void RpcOnShiftInputDown()
+    private void RpcOnShiftInputDown()
     {
         OnShiftInputDown();
     }
 
     [ClientRpc]
-    public void RpcOnAttackInputDown()
+    private void RpcOnAttackInputDown()
     {
         OnAttackInputDown();
     }
 
     [ClientRpc]
-    public void RpcOnJumpinputUp()
+    private void RpcOnJumpinputUp()
     {
         OnJumpInputUp();
     }
 
     [ClientRpc]
-    public void RpcOnJumpInputDown()
+    private void RpcOnJumpInputDown()
     {
         OnJumpInputDown();
     }
 
     [ClientRpc]
-    public void RpcSetDirectionalInput(Vector2 directionalInput)
+    private void RpcSetDirectionalInput(Vector2 directionalInput)
     {
         SetDirectionalInput(directionalInput);
     }
 
     #endregion ClientRpc Functions
-
 }
 
 
