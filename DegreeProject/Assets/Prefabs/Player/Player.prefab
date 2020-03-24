@@ -16,9 +16,9 @@ GameObject:
   - component: {fileID: -1591505417732094867}
   - component: {fileID: 7343355427558365897}
   - component: {fileID: 8615055910702153715}
-  - component: {fileID: 3242851751047014427}
   - component: {fileID: 8313396273835717485}
   - component: {fileID: 756974415637189492}
+  - component: {fileID: 274188927019687922}
   m_Layer: 9
   m_Name: Player
   m_TagString: Player
@@ -206,37 +206,6 @@ MonoBehaviour:
   collisionMask:
     serializedVersion: 2
     m_Bits: 256
---- !u!114 &3242851751047014427
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1689866831511430}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2f043239c59908841956d58d859f322e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  syncMode: 0
-  syncInterval: 0.1
-  controller: {fileID: 8615055910702153715}
-  playerCamera: {fileID: 4345298095977105852}
-  animator: {fileID: 95346456782871180}
-  spriteRenderer: {fileID: 212259381048184306}
-  playerBody2D: {fileID: 50512961935941442}
-  spawnPoint: {fileID: 0}
-  health: 10
-  damage: 2
-  maxJumpHeight: 5
-  minJumpHeight: 2
-  timeToJumpApex: 1
-  speed: 6
-  dashForce: 10
-  dashCooldown: 10
-  maxGravity: -20
-  accelerationTimeAirborne: 0.2
-  accelerationTimeGrounded: 0.1
 --- !u!114 &8313396273835717485
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -266,6 +235,37 @@ MonoBehaviour:
   collisionMask:
     serializedVersion: 2
     m_Bits: 256
+--- !u!114 &274188927019687922
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1689866831511430}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f043239c59908841956d58d859f322e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncMode: 0
+  syncInterval: 0.1
+  controller: {fileID: 8615055910702153715}
+  playerCamera: {fileID: 4345298095977105852}
+  animator: {fileID: 95346456782871180}
+  spriteRenderer: {fileID: 212259381048184306}
+  playerBody2D: {fileID: 50512961935941442}
+  spawnPoint: {fileID: 0}
+  health: 10
+  damage: 2
+  maxJumpHeight: 6
+  minJumpHeight: 2
+  timeToJumpApex: 0.4
+  speed: 6
+  dashForce: 10
+  dashCooldown: 10
+  maxGravity: -20
+  accelerationTimeAirborne: 0.2
+  accelerationTimeGrounded: 0.1
 --- !u!1 &7789064623791806115
 GameObject:
   m_ObjectHideFlags: 0

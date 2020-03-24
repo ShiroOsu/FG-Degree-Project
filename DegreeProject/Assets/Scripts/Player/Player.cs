@@ -118,10 +118,7 @@ public class Player : NetworkBehaviour
 
     private void Update()
     {
-        if (hasAuthority)
-        {
-            CmdUpdateMovement();
-        }
+        UpdateMovement();
 
         FlipSpriteX();
 
@@ -299,7 +296,7 @@ public class Player : NetworkBehaviour
     {
         health -= damage;
 
-        // Damage animation
+        // Hurt animation
         animator.SetTrigger(StringData.hurt);
 
         if (health <= 0f)
@@ -308,7 +305,7 @@ public class Player : NetworkBehaviour
         }
     }
 
-    private void ShouldDie()
+    private void DestroyIfDead()
     {
         if (isDead)
         {
@@ -336,42 +333,36 @@ public class Player : NetworkBehaviour
     [Command]
     private void CmdUpdateMovement()
     {
-        UpdateMovement();
         RpcUpdateMovement();
     }
 
     [Command]
     public void CmdOnShiftInputDown()
     {
-        OnShiftInputDown();
         RpcOnShiftInputDown();
     }
 
     [Command]
     public void CmdOnAttackInputDown()
     {
-        OnAttackInputDown();
         RpcOnAttackInputDown();
     }
 
     [Command]
     public void CmdSetDirectionalInput(Vector2 directionalInput)
     {
-        SetDirectionalInput(directionalInput);
         RpcSetDirectionalInput(directionalInput);
     }
 
     [Command]
     public void CmdOnJumpInputDown()
     {
-        OnJumpInputDown();
         RpcOnJumpInputDown();
     }
 
     [Command]
     public void CmdOnJumpInputUp()
     {
-        OnJumpInputUp();
         RpcOnJumpinputUp();
     }
 
