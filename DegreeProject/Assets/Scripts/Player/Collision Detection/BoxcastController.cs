@@ -8,8 +8,6 @@ public class BoxcastController : MonoBehaviour
         public bool above, below;
         public bool left, right;
 
-        public Vector2 velocityOld;
-
         public void Reset()
         {
             above = below = false;

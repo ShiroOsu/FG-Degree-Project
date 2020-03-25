@@ -4,7 +4,7 @@ using System.Collections;
 using Mirror;
 
 [RequireComponent(typeof(PlayerController))]
-public class Player : NetworkBehaviour
+public partial class Player : NetworkBehaviour
 {
     [Header("Player Components")]
     public PlayerController controller;
@@ -127,7 +127,9 @@ public class Player : NetworkBehaviour
 
     private void UpdateMovement()
     {
-        controller.UpdateCollision(velocity * Time.deltaTime, directionalInput);
+        controller.boxController.UpdateCollision(velocity * Time.deltaTime, directionalInput);
+
+        //controller.UpdateCollision(velocity * Time.deltaTime, directionalInput);
         CalculateVelocity();
         controller.Move(velocity * Time.deltaTime);
     }
@@ -136,16 +138,16 @@ public class Player : NetworkBehaviour
     {
         float targetVelocityX = directionalInput.x * speed;
         velocity.x = Mathf.SmoothDamp(velocity.x, targetVelocityX, ref velocityXSmoothing,
-            (controller.collisionsInfo.below) ? accelerationTimeGrounded : accelerationTimeAirborne);
+            (controller.boxController.collisionsInfo.below) ? accelerationTimeGrounded : accelerationTimeAirborne);
 
-        bool hitCeiling = controller.collisionsInfo.above ? true : false;
+        bool hitCeiling = controller.boxController.collisionsInfo.above ? true : false;
 
         if (hitCeiling)
         {
             velocity.y = velocity.y > Mathf.Abs(gravity * 0.3f) ? gravity * 0.3f : -velocity.y;
         }
 
-        if (!controller.collisionsInfo.below)
+        if (!controller.boxController.collisionsInfo.below)
         {
             // Attack in air
             if (!AnimationIsPlaying(StringData.attack) && AnimationIsPlaying(StringData.jump))
@@ -182,11 +184,11 @@ public class Player : NetworkBehaviour
         }
 
         // Stop player from shaking when moving towards a wall
-        if (controller.collisionsInfo.right)
+        if (controller.boxController.collisionsInfo.right)
         {
             velocity.x = Mathf.Clamp(velocity.x, float.NegativeInfinity, 0);
         }
-        if (controller.collisionsInfo.left)
+        if (controller.boxController.collisionsInfo.left)
         {
             velocity.x = Mathf.Clamp(velocity.x, 0, float.PositiveInfinity);
         }
@@ -286,7 +288,7 @@ public class Player : NetworkBehaviour
             animator.SetInteger(StringData.animState, 0); // Idle animation
         }
 
-        if (controller.collisionsInfo.below || isOnGround)
+        if (controller.boxController.collisionsInfo.below || isOnGround)
         {
             animator.SetBool(StringData.grounded, true); // Standing animation (Idle)
         }
@@ -327,8 +329,11 @@ public class Player : NetworkBehaviour
             }
         }
     }
+}
 
-    #region Command Functions
+// Command & RPC's
+public partial class Player
+{
 
     [Command]
     private void CmdUpdateMovement()
@@ -366,9 +371,6 @@ public class Player : NetworkBehaviour
         RpcOnJumpinputUp();
     }
 
-    #endregion Command Functions
-
-    #region ClientRpc Functions
 
     [ClientRpc]
     private void RpcUpdateMovement()
@@ -405,8 +407,6 @@ public class Player : NetworkBehaviour
     {
         SetDirectionalInput(directionalInput);
     }
-
-    #endregion ClientRpc Functions
 }
 
 
