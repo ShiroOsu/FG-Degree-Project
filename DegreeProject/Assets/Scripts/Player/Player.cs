@@ -65,7 +65,7 @@ public partial class Player : NetworkBehaviour
         Color.yellow,
     };
 
-    private void Start()
+    private void Awake()
     {
         SetupComponents();
     }
@@ -106,14 +106,17 @@ public partial class Player : NetworkBehaviour
             playerBody2D = GetComponent<Rigidbody2D>();
         }
 
-        gravity = -((2 * maxJumpHeight) / Mathf.Pow(timeToJumpApex, 2));
-        maxJumpVelocity = Mathf.Abs(gravity) * timeToJumpApex;
-        minJumpVelocity = Mathf.Sqrt(2 * Mathf.Abs(gravity) * minJumpHeight);
-
         if (!isLocalPlayer)
         {
             spriteRenderer.color = colorList[Random.Range(0, colorList.Count)];
         }
+    }
+
+    private void Start()
+    {
+        gravity = -((2 * maxJumpHeight) / Mathf.Pow(timeToJumpApex, 2));
+        maxJumpVelocity = Mathf.Abs(gravity) * timeToJumpApex;
+        minJumpVelocity = Mathf.Sqrt(2 * Mathf.Abs(gravity) * minJumpHeight);
     }
 
     private void Update()

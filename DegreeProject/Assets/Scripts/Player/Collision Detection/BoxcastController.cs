@@ -1,4 +1,7 @@
-﻿using UnityEngine;
+﻿#define DEBUG
+#undef DEBUG
+
+using UnityEngine;
 
 [RequireComponent(typeof(BoxCollider2D))]
 public class BoxcastController : MonoBehaviour
@@ -38,7 +41,10 @@ public class BoxcastController : MonoBehaviour
     {
         HorizontalCollision(in velocity, in directionalInput);
         VerticalCollision(in velocity, in directionalInput);
-        DrawCollisionChecks(); // DEBUG
+
+#if DEBUG
+        DrawCollisionChecks();
+#endif
     }
 
     private void HorizontalCollision(in Vector2 velocity, in Vector2 directionalInput)
@@ -81,7 +87,7 @@ public class BoxcastController : MonoBehaviour
         }
     }
 
-    #region DEBUG
+#if DEBUG
     Vector3[] horizontalVerts = new Vector3[4];
     Vector3[] verticalVerts = new Vector3[4];
 
@@ -116,5 +122,5 @@ public class BoxcastController : MonoBehaviour
             Debug.DrawLine(verticalVerts[3], verticalVerts[0]);
         }
     }
-    #endregion DEBUG
+#endif
 }

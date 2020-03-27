@@ -24,7 +24,8 @@ public class PlayerController : NetworkBehaviour
     private void Update()
     {
         // Only get access to controls if it is a Local player.
-        if (isLocalPlayer)
+        if (!isLocalPlayer) return;
+
         {
             Vector2 directionalInput = new Vector2(Input.GetAxisRaw(StringData.horizontal), Input.GetAxisRaw(StringData.vertical));
             player.CmdSetDirectionalInput(directionalInput);
