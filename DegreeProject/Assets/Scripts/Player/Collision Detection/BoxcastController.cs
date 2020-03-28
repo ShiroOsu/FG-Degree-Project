@@ -1,5 +1,4 @@
 ﻿#define DEBUG
-#undef DEBUG
 
 using UnityEngine;
 
