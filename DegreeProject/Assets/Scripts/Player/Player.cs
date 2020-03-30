@@ -4,7 +4,7 @@ using System.Collections;
 using Mirror;
 
 [RequireComponent(typeof(PlayerController))]
-public class Player : NetworkBehaviour
+public partial class Player : NetworkBehaviour
 {
     [Header("Player Components")]
     public PlayerController controller;
@@ -65,7 +65,7 @@ public class Player : NetworkBehaviour
         Color.yellow,
     };
 
-    private void Start()
+    private void Awake()
     {
         SetupComponents();
     }
@@ -106,22 +106,22 @@ public class Player : NetworkBehaviour
             playerBody2D = GetComponent<Rigidbody2D>();
         }
 
-        gravity = -((2 * maxJumpHeight) / Mathf.Pow(timeToJumpApex, 2));
-        maxJumpVelocity = Mathf.Abs(gravity) * timeToJumpApex;
-        minJumpVelocity = Mathf.Sqrt(2 * Mathf.Abs(gravity) * minJumpHeight);
-
         if (!isLocalPlayer)
         {
             spriteRenderer.color = colorList[Random.Range(0, colorList.Count)];
         }
     }
 
+    private void Start()
+    {
+        gravity = -((2 * maxJumpHeight) / Mathf.Pow(timeToJumpApex, 2));
+        maxJumpVelocity = Mathf.Abs(gravity) * timeToJumpApex;
+        minJumpVelocity = Mathf.Sqrt(2 * Mathf.Abs(gravity) * minJumpHeight);
+    }
+
     private void Update()
     {
-        if (hasAuthority)
-        {
-            CmdUpdateMovement();
-        }
+        UpdateMovement();
 
         FlipSpriteX();
 
@@ -130,7 +130,9 @@ public class Player : NetworkBehaviour
 
     private void UpdateMovement()
     {
-        controller.UpdateCollision(velocity * Time.deltaTime, directionalInput);
+        controller.boxController.UpdateCollision(velocity * Time.deltaTime, directionalInput);
+
+        //controller.UpdateCollision(velocity * Time.deltaTime, directionalInput);
         CalculateVelocity();
         controller.Move(velocity * Time.deltaTime);
     }
@@ -139,16 +141,16 @@ public class Player : NetworkBehaviour
     {
         float targetVelocityX = directionalInput.x * speed;
         velocity.x = Mathf.SmoothDamp(velocity.x, targetVelocityX, ref velocityXSmoothing,
-            (controller.collisionsInfo.below) ? accelerationTimeGrounded : accelerationTimeAirborne);
+            (controller.boxController.collisionsInfo.below) ? accelerationTimeGrounded : accelerationTimeAirborne);
 
-        bool hitCeiling = controller.collisionsInfo.above ? true : false;
+        bool hitCeiling = controller.boxController.collisionsInfo.above ? true : false;
 
         if (hitCeiling)
         {
             velocity.y = velocity.y > Mathf.Abs(gravity * 0.3f) ? gravity * 0.3f : -velocity.y;
         }
 
-        if (!controller.collisionsInfo.below)
+        if (!controller.boxController.collisionsInfo.below)
         {
             // Attack in air
             if (!AnimationIsPlaying(StringData.attack) && AnimationIsPlaying(StringData.jump))
@@ -185,11 +187,11 @@ public class Player : NetworkBehaviour
         }
 
         // Stop player from shaking when moving towards a wall
-        if (controller.collisionsInfo.right)
+        if (controller.boxController.collisionsInfo.right)
         {
             velocity.x = Mathf.Clamp(velocity.x, float.NegativeInfinity, 0);
         }
-        if (controller.collisionsInfo.left)
+        if (controller.boxController.collisionsInfo.left)
         {
             velocity.x = Mathf.Clamp(velocity.x, 0, float.PositiveInfinity);
         }
@@ -289,7 +291,7 @@ public class Player : NetworkBehaviour
             animator.SetInteger(StringData.animState, 0); // Idle animation
         }
 
-        if (controller.collisionsInfo.below || isOnGround)
+        if (controller.boxController.collisionsInfo.below || isOnGround)
         {
             animator.SetBool(StringData.grounded, true); // Standing animation (Idle)
         }
@@ -299,7 +301,7 @@ public class Player : NetworkBehaviour
     {
         health -= damage;
 
-        // Damage animation
+        // Hurt animation
         animator.SetTrigger(StringData.hurt);
 
         if (health <= 0f)
@@ -308,7 +310,7 @@ public class Player : NetworkBehaviour
         }
     }
 
-    private void ShouldDie()
+    private void DestroyIfDead()
     {
         if (isDead)
         {
@@ -330,54 +332,48 @@ public class Player : NetworkBehaviour
             }
         }
     }
+}
 
-    #region Command Functions
+// Command & RPC's
+public partial class Player
+{
 
     [Command]
     private void CmdUpdateMovement()
     {
-        UpdateMovement();
         RpcUpdateMovement();
     }
 
     [Command]
     public void CmdOnShiftInputDown()
     {
-        OnShiftInputDown();
         RpcOnShiftInputDown();
     }
 
     [Command]
     public void CmdOnAttackInputDown()
     {
-        OnAttackInputDown();
         RpcOnAttackInputDown();
     }
 
     [Command]
     public void CmdSetDirectionalInput(Vector2 directionalInput)
     {
-        SetDirectionalInput(directionalInput);
         RpcSetDirectionalInput(directionalInput);
     }
 
     [Command]
     public void CmdOnJumpInputDown()
     {
-        OnJumpInputDown();
         RpcOnJumpInputDown();
     }
 
     [Command]
     public void CmdOnJumpInputUp()
     {
-        OnJumpInputUp();
         RpcOnJumpinputUp();
     }
 
-    #endregion Command Functions
-
-    #region ClientRpc Functions
 
     [ClientRpc]
     private void RpcUpdateMovement()
@@ -414,8 +410,6 @@ public class Player : NetworkBehaviour
     {
         SetDirectionalInput(directionalInput);
     }
-
-    #endregion ClientRpc Functions
 }
 
 
