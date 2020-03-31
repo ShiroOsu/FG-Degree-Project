@@ -4,10 +4,10 @@ using Mirror;
 public class AI : NetworkBehaviour
 {
     [Header("Health & Damage")]
-    [SerializeField] [SyncVar] private float health;
-    [SerializeField] private float damage;
+    [SerializeField] [SyncVar] private float health = 1f;
+    [SerializeField] private float damage = 1f;
 
-    [SerializeField] private float speed;
+    [SerializeField] private float speed = 1f;
 
     public bool switchState { get; set; } // Switching between Patrol and Follow state.
 
@@ -16,7 +16,7 @@ public class AI : NetworkBehaviour
     private void Start()
     {
         stateMachine = new StateMachine<AI>(this);
-        stateMachine.ChangeState(PatrolState.s_stateInstance);
+        stateMachine.ChangeState(PatrolState.stateInstance);
     }
 
     private void Update()

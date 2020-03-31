@@ -131,8 +131,6 @@ public partial class Player : NetworkBehaviour
     private void UpdateMovement()
     {
         controller.boxController.UpdateCollision(velocity * Time.deltaTime, directionalInput);
-
-        //controller.UpdateCollision(velocity * Time.deltaTime, directionalInput);
         CalculateVelocity();
         controller.Move(velocity * Time.deltaTime);
     }

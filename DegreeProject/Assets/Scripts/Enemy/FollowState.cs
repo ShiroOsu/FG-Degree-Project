@@ -14,7 +14,7 @@ public class FollowState : State<AI>
         s_instance = this;
     }
 
-    public static FollowState s_stateInstance
+    public static FollowState stateInstance
     {
         get
         {
@@ -40,7 +40,7 @@ public class FollowState : State<AI>
     {
         if (!owner.switchState)
         {
-            owner.stateMachine.ChangeState(PatrolState.s_stateInstance);
+            owner.stateMachine.ChangeState(PatrolState.stateInstance);
         }
     }
 }

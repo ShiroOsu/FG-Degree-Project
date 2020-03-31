@@ -14,7 +14,7 @@ public class PatrolState : State<AI>
         s_instance = this;
     }
 
-    public static PatrolState s_stateInstance
+    public static PatrolState stateInstance
     {
         get
         {
@@ -41,7 +41,7 @@ public class PatrolState : State<AI>
         // TEMP
         if (owner.switchState)
         {
-            owner.stateMachine.ChangeState(FollowState.s_stateInstance);
+            owner.stateMachine.ChangeState(FollowState.stateInstance);
         }
     }
 }
