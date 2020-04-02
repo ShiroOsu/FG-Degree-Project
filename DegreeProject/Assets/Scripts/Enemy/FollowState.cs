@@ -38,9 +38,24 @@ public class FollowState : State<AI>
 
     public override void UpdateState(AI owner)
     {
-        if (!owner.switchState)
+        if (!owner.playerObject)
         {
             owner.stateMachine.ChangeState(PatrolState.stateInstance);
+        }
+
+        if (owner.playerObject) // To ensure that we don't call null reference after playerObject is set to null
+        {
+            RemovePlayerObject(owner);
+        }
+    }
+
+    private void RemovePlayerObject(AI owner)
+    {
+        owner.sqrCurrDistance = (owner.playerObject.transform.position - owner.AIObject.transform.position).sqrMagnitude;
+
+        if (owner.sqrCurrDistance > owner.sqrMaxDistance)
+        {
+            owner.playerObject = null;
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
 using Mirror;
 
 public class AI : NetworkBehaviour
@@ -9,12 +10,27 @@ public class AI : NetworkBehaviour
 
     [SerializeField] private float speed = 1f;
 
-    public bool switchState { get; set; } // Switching between Patrol and Follow state.
+    // AI components
+    public Collider2D detectionCircle { get; set; }
+    public GameObject playerObject { get; set; }
+    public GameObject AIObject { get; private set; }
 
-    public StateMachine<AI> stateMachine { get; set; }
+    [SerializeField] private float maxDetectionDistance = 8f;
+    public float sqrCurrDistance { get; set; }
+    public float sqrMaxDistance
+    { 
+        get 
+        { 
+            return maxDetectionDistance * maxDetectionDistance; 
+        } 
+    }
+
+    public StateMachine<AI> stateMachine { get; private set; }
 
     private void Start()
     {
+        AIObject = gameObject;
+
         stateMachine = new StateMachine<AI>(this);
         stateMachine.ChangeState(PatrolState.stateInstance);
     }
@@ -42,4 +58,8 @@ public class AI : NetworkBehaviour
         }
     }
 
+    private void OnDrawGizmos()
+    {
+        Gizmos.DrawWireSphere(gameObject.transform.position, radius:5f);
+    }
 }

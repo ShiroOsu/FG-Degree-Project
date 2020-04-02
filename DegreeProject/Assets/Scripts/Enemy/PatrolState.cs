@@ -4,6 +4,8 @@ public class PatrolState : State<AI>
 {
     private static PatrolState s_instance;
 
+    private float detectionRadius { get { return 5f; } }
+
     private PatrolState()
     {
         if (s_instance != null)
@@ -38,10 +40,24 @@ public class PatrolState : State<AI>
 
     public override void UpdateState(AI owner)
     {
-        // TEMP
-        if (owner.switchState)
+        if (owner.playerObject)
         {
             owner.stateMachine.ChangeState(FollowState.stateInstance);
+        }
+
+        if (!owner.playerObject)
+        {
+            DetectNearbyPlayer(owner);
+        }
+    }
+
+    private void DetectNearbyPlayer(AI owner)
+    {
+        owner.detectionCircle = Physics2D.OverlapCircle(owner.AIObject.transform.position, detectionRadius);
+
+        if (owner.detectionCircle.tag == StringData.player)
+        {
+            owner.playerObject = owner.detectionCircle.gameObject;
         }
     }
 }
