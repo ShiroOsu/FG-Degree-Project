@@ -34,6 +34,15 @@ public class FollowState : State<AI>
     public override void ExitState(AI owner)
     {
         Debug.Log("Exiting FollowState.");
+
+        // When exiting follow stage, check if there is any other players
+        // still inside detection circle 
+        owner.detectionCircle = Physics2D.OverlapCircle(owner.AIObject.transform.position, owner.detectionRadius);
+
+        if (owner.detectionCircle.tag == StringData.player)
+        {
+            owner.playerObject = owner.detectionCircle.gameObject;
+        }
     }
 
     public override void UpdateState(AI owner)

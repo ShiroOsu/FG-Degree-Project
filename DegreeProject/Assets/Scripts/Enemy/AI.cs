@@ -1,10 +1,9 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
 using Mirror;
 
 public class AI : NetworkBehaviour
 {
-    [Header("Health & Damage")]
+    [Header("AI Settings")]
     [SerializeField] [SyncVar] private float health = 1f;
     [SerializeField] private float damage = 1f;
 
@@ -15,7 +14,9 @@ public class AI : NetworkBehaviour
     public GameObject playerObject { get; set; }
     public GameObject AIObject { get; private set; }
 
+    [Header("Detection Settings")]
     [SerializeField] private float maxDetectionDistance = 8f;
+    public float detectionRadius { get { return 5f; } }
     public float sqrCurrDistance { get; set; }
     public float sqrMaxDistance
     { 
