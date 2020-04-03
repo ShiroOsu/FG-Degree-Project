@@ -35,7 +35,7 @@ public partial class Player : NetworkBehaviour
     //[Header("Gravity"), Tooltip("Should be a negative value")]
     private float maxGravity = -20f;
 
-    [Header("Acceleration smoothing (Airborne and Ground)")]
+    [Header("Acceleration smoothing")]
     public float accelerationTimeAirborne = 0.2f;
     public float accelerationTimeGrounded = 0.1f;
     private float velocityXSmoothing;

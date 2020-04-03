@@ -1,13 +1,14 @@
-﻿using UnityEngine;
+﻿#define DEBUG
+
+using UnityEngine;
 using Mirror;
 
 public class AI : NetworkBehaviour
 {
     [Header("AI Settings")]
-    [SerializeField] [SyncVar] private float health = 1f;
-    [SerializeField] private float damage = 1f;
-
-    [SerializeField] private float speed = 1f;
+    [SerializeField] [SyncVar] private float health = 10f;
+    //[SerializeField] private float damage = 1f;
+    public float speed = 6f;
 
     // AI components
     public Collider2D detectionCircle { get; set; }
@@ -16,7 +17,7 @@ public class AI : NetworkBehaviour
 
     [Header("Detection Settings")]
     [SerializeField] private float maxDetectionDistance = 8f;
-    public float detectionRadius { get { return 5f; } }
+    public float detectionRadius = 5f;
     public float sqrCurrDistance { get; set; }
     public float sqrMaxDistance
     { 
@@ -59,8 +60,10 @@ public class AI : NetworkBehaviour
         }
     }
 
+#if DEBUG
     private void OnDrawGizmos()
     {
-        Gizmos.DrawWireSphere(gameObject.transform.position, radius:5f);
+        Gizmos.DrawWireSphere(gameObject.transform.position, detectionRadius);
     }
+#endif
 }

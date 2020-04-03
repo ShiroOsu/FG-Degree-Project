@@ -35,13 +35,9 @@ public class FollowState : State<AI>
     {
         Debug.Log("Exiting FollowState.");
 
-        // When exiting follow stage, check if there is any other players
-        // still inside detection circle 
-        owner.detectionCircle = Physics2D.OverlapCircle(owner.AIObject.transform.position, owner.detectionRadius);
-
-        if (owner.detectionCircle.tag == StringData.player)
+        if (owner.playerObject)
         {
-            owner.playerObject = owner.detectionCircle.gameObject;
+            DetectNearbyPlayer(owner);
         }
     }
 
@@ -54,14 +50,31 @@ public class FollowState : State<AI>
 
         if (owner.playerObject) // To ensure that we don't call null reference after playerObject is set to null
         {
-            RemovePlayerObject(owner);
+            FollowPlayer(owner);
         }
     }
 
-    private void RemovePlayerObject(AI owner)
+    private void DetectNearbyPlayer(AI owner)
     {
+        // When exiting follow state, check if there is any other players
+        // still inside detection circle 
+        owner.detectionCircle = Physics2D.OverlapCircle(owner.AIObject.transform.position, owner.detectionRadius);
+
+        if (owner.detectionCircle.tag == StringData.player)
+        {
+            owner.playerObject = owner.detectionCircle.gameObject;
+        }
+    }
+
+    private void FollowPlayer(AI owner)
+    {
+        // Update current distance from playerObject
         owner.sqrCurrDistance = (owner.playerObject.transform.position - owner.AIObject.transform.position).sqrMagnitude;
 
+        // Move towards playerObjects location
+        owner.AIObject.transform.position = Vector2.MoveTowards(owner.AIObject.transform.position, owner.playerObject.transform.position,
+            owner.speed * Time.deltaTime);
+        
         if (owner.sqrCurrDistance > owner.sqrMaxDistance)
         {
             owner.playerObject = null;

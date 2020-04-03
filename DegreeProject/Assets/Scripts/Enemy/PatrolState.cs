@@ -4,7 +4,6 @@ public class PatrolState : State<AI>
 {
     private static PatrolState s_instance;
 
-
     private PatrolState()
     {
         if (s_instance != null)
