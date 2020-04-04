@@ -58,9 +58,9 @@ public class FollowState : State<AI>
     {
         // When exiting follow state, check if there is any other players
         // still inside detection circle 
-        owner.detectionCircle = Physics2D.OverlapCircle(owner.AIObject.transform.position, owner.detectionRadius);
+        owner.detectionCircle = Physics2D.OverlapCircle(owner.transform.position, owner.detectionRadius);
 
-        if (owner.detectionCircle.tag == StringData.player)
+        if (owner.detectionCircle.CompareTag(StringData.player))
         {
             owner.playerObject = owner.detectionCircle.gameObject;
         }
@@ -69,12 +69,14 @@ public class FollowState : State<AI>
     private void FollowPlayer(AI owner)
     {
         // Update current distance from playerObject
-        owner.sqrCurrDistance = (owner.playerObject.transform.position - owner.AIObject.transform.position).sqrMagnitude;
+        owner.sqrCurrDistance = (owner.playerObject.transform.position - owner.transform.position).sqrMagnitude;
+
+        //Vector2 target = new Vector2(owner.playerObject.transform.position.x, 0f);
 
         // Move towards playerObjects location
-        owner.AIObject.transform.position = Vector2.MoveTowards(owner.AIObject.transform.position, owner.playerObject.transform.position,
+        owner.transform.position = Vector2.MoveTowards(owner.transform.position, owner.playerObject.transform.position,
             owner.speed * Time.deltaTime);
-        
+
         if (owner.sqrCurrDistance > owner.sqrMaxDistance)
         {
             owner.playerObject = null;

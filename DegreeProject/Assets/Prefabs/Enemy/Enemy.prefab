@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 5663934275600295366}
   - component: {fileID: -9016552575488102380}
   - component: {fileID: -5347669914188338811}
-  m_Layer: 8
+  m_Layer: 9
   m_Name: Enemy
   m_TagString: Enemy
   m_Icon: {fileID: 0}
@@ -202,6 +202,7 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.1
   health: 10
-  damage: 2
+  damage: 1
   speed: 5
-  hello: 0
+  maxDetectionDistance: 8
+  detectionRadius: 5

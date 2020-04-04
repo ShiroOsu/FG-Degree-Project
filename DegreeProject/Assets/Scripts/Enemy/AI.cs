@@ -7,13 +7,12 @@ public class AI : NetworkBehaviour
 {
     [Header("AI Settings")]
     [SerializeField] [SyncVar] private float health = 10f;
-    //[SerializeField] private float damage = 1f;
-    public float speed = 6f;
+    [SerializeField] private float damage = 1f;
+    public float speed = 2f;
 
     // AI components
     public Collider2D detectionCircle { get; set; }
     public GameObject playerObject { get; set; }
-    public GameObject AIObject { get; private set; }
 
     [Header("Detection Settings")]
     [SerializeField] private float maxDetectionDistance = 8f;
@@ -31,8 +30,6 @@ public class AI : NetworkBehaviour
 
     private void Start()
     {
-        AIObject = gameObject;
-
         stateMachine = new StateMachine<AI>(this);
         stateMachine.ChangeState(PatrolState.stateInstance);
     }
@@ -64,6 +61,9 @@ public class AI : NetworkBehaviour
     private void OnDrawGizmos()
     {
         Gizmos.DrawWireSphere(gameObject.transform.position, detectionRadius);
+        
+        Gizmos.DrawWireCube(new Vector3(transform.position.x - 0.5f, transform.position.y + 0.65f, 0f), new Vector3(0.15f, 1.15f, 0f));
+        Gizmos.DrawWireCube(new Vector3(transform.position.x + 0.5f, transform.position.y + 0.65f, 0f), new Vector3(0.15f, 1.15f, 0f));
     }
 #endif
 }
