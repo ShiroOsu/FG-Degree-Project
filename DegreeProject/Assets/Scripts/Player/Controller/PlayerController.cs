@@ -5,6 +5,12 @@ using Mirror;
 [RequireComponent(typeof(BoxcastController))]
 public class PlayerController : NetworkBehaviour
 {
+    enum MouseButtons
+    {
+        Left = 0,
+        Right = 1,
+    }
+
     public BoxcastController boxController
     {
         get;
@@ -45,7 +51,7 @@ public class PlayerController : NetworkBehaviour
                 player.CmdOnShiftInputDown();
             }
 
-            if (Input.GetMouseButtonDown(0)) // Left mouse button
+            if (Input.GetMouseButtonDown((int)MouseButtons.Left))
             {
                 player.CmdOnAttackInputDown();
             }

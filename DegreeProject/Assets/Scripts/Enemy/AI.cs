@@ -1,22 +1,37 @@
-﻿using UnityEngine;
+﻿#define DEBUG
+
+using UnityEngine;
 using Mirror;
 
 public class AI : NetworkBehaviour
 {
-    [Header("Health & Damage")]
-    [SerializeField] [SyncVar] private float health;
-    [SerializeField] private float damage;
+    [Header("AI Settings")]
+    [SerializeField] [SyncVar] private float health = 10f;
+    [SerializeField] private float damage = 1f;
+    public float speed = 2f;
 
-    [SerializeField] private float speed;
+    // AI components
+    public Collider2D detectionCircle { get; set; }
+    public GameObject playerObject { get; set; }
 
-    public bool switchState { get; set; } // Switching between Patrol and Follow state.
+    [Header("Detection Settings")]
+    [SerializeField] private float maxDetectionDistance = 8f;
+    public float detectionRadius = 5f;
+    public float sqrCurrDistance { get; set; }
+    public float sqrMaxDistance
+    { 
+        get 
+        { 
+            return maxDetectionDistance * maxDetectionDistance; 
+        } 
+    }
 
-    public StateMachine<AI> stateMachine { get; set; }
+    public StateMachine<AI> stateMachine { get; private set; }
 
     private void Start()
     {
         stateMachine = new StateMachine<AI>(this);
-        stateMachine.ChangeState(PatrolState.s_stateInstance);
+        stateMachine.ChangeState(PatrolState.stateInstance);
     }
 
     private void Update()
@@ -42,4 +57,13 @@ public class AI : NetworkBehaviour
         }
     }
 
+#if DEBUG
+    private void OnDrawGizmos()
+    {
+        Gizmos.DrawWireSphere(gameObject.transform.position, detectionRadius);
+        
+        Gizmos.DrawWireCube(new Vector3(transform.position.x - 0.5f, transform.position.y + 0.65f, 0f), new Vector3(0.15f, 1.15f, 0f));
+        Gizmos.DrawWireCube(new Vector3(transform.position.x + 0.5f, transform.position.y + 0.65f, 0f), new Vector3(0.15f, 1.15f, 0f));
+    }
+#endif
 }

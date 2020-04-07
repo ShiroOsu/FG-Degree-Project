@@ -19,7 +19,7 @@ public partial class Player : NetworkBehaviour
     public float damage = 2f;
 
     [Header("Jump Settings")]
-    public float maxJumpHeight = 6f;
+    public float maxJumpHeight = 10f;
     public float minJumpHeight = 2f;
     public float timeToJumpApex = 0.4f;
 
@@ -32,10 +32,10 @@ public partial class Player : NetworkBehaviour
     [Tooltip("Dash cooldown in seconds")]
     public float dashCooldown = 10f;
 
-    [Header("Gravity"), Tooltip("Should be a negative value")]
-    public float maxGravity = -20f;
+    //[Header("Gravity"), Tooltip("Should be a negative value")]
+    private float maxGravity = -20f;
 
-    [Header("Acceleration smoothing (Airborne and Ground)")]
+    [Header("Acceleration smoothing")]
     public float accelerationTimeAirborne = 0.2f;
     public float accelerationTimeGrounded = 0.1f;
     private float velocityXSmoothing;
@@ -115,8 +115,10 @@ public partial class Player : NetworkBehaviour
     private void Start()
     {
         gravity = -((2 * maxJumpHeight) / Mathf.Pow(timeToJumpApex, 2));
-        maxJumpVelocity = Mathf.Abs(gravity) * timeToJumpApex;
-        minJumpVelocity = Mathf.Sqrt(2 * Mathf.Abs(gravity) * minJumpHeight);
+        maxJumpVelocity = 20f; //Mathf.Abs(gravity) * timeToJumpApex;
+        minJumpVelocity = 4f; //Mathf.Sqrt(2 * Mathf.Abs(gravity) * minJumpHeight);
+
+        //Debug.Log("g=" + gravity + " max=" +maxJumpVelocity +" min=" +minJumpVelocity);
     }
 
     private void Update()
@@ -131,8 +133,6 @@ public partial class Player : NetworkBehaviour
     private void UpdateMovement()
     {
         controller.boxController.UpdateCollision(velocity * Time.deltaTime, directionalInput);
-
-        //controller.UpdateCollision(velocity * Time.deltaTime, directionalInput);
         CalculateVelocity();
         controller.Move(velocity * Time.deltaTime);
     }

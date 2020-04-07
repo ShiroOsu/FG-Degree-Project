@@ -30,4 +30,6 @@
     public static string hurt = "Hurt";
     public static string death = "Death";
 
+    // Masks
+    public static string ground = "Ground";
 }
