@@ -4,10 +4,6 @@
     public const string horizontal = "Horizontal";
     public const string vertical = "Vertical";
 
-    // Tags
-    public const string enemy = "Enemy";
-    public const string player = "Player";
-    
     // Drop items
     public static string item = "Item";
     public static string health = "Health";

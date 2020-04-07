@@ -1,50 +1,27 @@
 ﻿using UnityEngine;
 
-public class PatrolState : State<AI>
+public class PatrolState : MonoBehaviour, iState<AI>
 {
-    private static PatrolState s_instance;
     private bool rightWall;
     private bool leftWall;
     private Vector2 direction;
     private Vector2 boxSize = new Vector2(0.15f, 1.15f);
 
-    private PatrolState()
-    {
-        if (s_instance != null)
-        {
-            return;
-        }
-
-        s_instance = this;
-    }
-
-    public static PatrolState stateInstance
-    {
-        get
-        {
-            if (s_instance == null)
-            {
-                new PatrolState();
-            }
-            return s_instance;
-        }
-    }
-
-    public override void EnterState(AI owner)
+    public void EnterState(AI owner)
     {
         Debug.Log("Entering PatrolState.");
     }
 
-    public override void ExitState(AI owner)
+    public void ExitState(AI owner)
     {
         Debug.Log("Exiting PatrolState.");
     }
 
-    public override void UpdateState(AI owner)
+    public void UpdateState(AI owner)
     {
         if (owner.playerObject)
         {
-            owner.stateMachine.ChangeState(FollowState.stateInstance);
+            owner.stateMachine.ChangeState(owner.followState);
         }
 
         if (!owner.playerObject)
@@ -57,13 +34,17 @@ public class PatrolState : State<AI>
 
     private void DetectNearbyPlayer(AI owner)
     {
-        owner.detectionCircle = Physics2D.OverlapCircle(owner.transform.position, owner.detectionRadius);
+        owner.detectionCircle = Physics2D.OverlapCircleAll(owner.transform.position, owner.detectionRadius);
 
-        if (owner.detectionCircle.CompareTag(StringData.player))
+        foreach (var col in owner.detectionCircle)
         {
-            owner.playerObject = owner.detectionCircle.gameObject;
+            if (col.GetComponent<Player>() != null)
+            {
+                owner.playerObject = col.gameObject;
+                return;
+            }
         }
-    }
+    }  
 
     private void Patrol(AI owner)
     {

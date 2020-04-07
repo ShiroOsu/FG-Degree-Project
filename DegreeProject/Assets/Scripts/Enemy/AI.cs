@@ -11,7 +11,7 @@ public class AI : NetworkBehaviour
     public float speed = 2f;
 
     // AI components
-    public Collider2D detectionCircle { get; set; }
+    public Collider2D[] detectionCircle { get; set; }
     public GameObject playerObject { get; set; }
 
     [Header("Detection Settings")]
@@ -27,11 +27,16 @@ public class AI : NetworkBehaviour
     }
 
     public StateMachine<AI> stateMachine { get; private set; }
+    public FollowState followState { get; private set; }
+    public PatrolState patrolState { get; private set; }
 
     private void Start()
     {
+        followState = GetComponent<FollowState>();
+        patrolState = GetComponent<PatrolState>();
+
         stateMachine = new StateMachine<AI>(this);
-        stateMachine.ChangeState(PatrolState.stateInstance);
+        stateMachine.ChangeState(patrolState); 
     }
 
     private void Update()
