@@ -37,6 +37,7 @@ Transform:
   m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_Children:
   - {fileID: 2371345532132213390}
+  - {fileID: 4318227278465926355}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -241,15 +242,46 @@ MonoBehaviour:
   spawnPoint: {fileID: 0}
   health: 10
   damage: 2
+  attackPoint: {fileID: 4318227278465926355}
+  attackRange: 1
   maxJumpHeight: 6
   minJumpHeight: 2
   timeToJumpApex: 0.4
   speed: 6
   dashForce: 10
   dashCooldown: 10
-  maxGravity: -20
   accelerationTimeAirborne: 0.2
   accelerationTimeGrounded: 0.1
+--- !u!1 &6885460924047259652
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4318227278465926355}
+  m_Layer: 9
+  m_Name: AttackPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4318227278465926355
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6885460924047259652}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -1, y: 1.5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 4805181885227780}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7789064623791806115
 GameObject:
   m_ObjectHideFlags: 0

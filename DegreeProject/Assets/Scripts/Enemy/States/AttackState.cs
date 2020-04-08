@@ -19,7 +19,7 @@ public class AttackState : MonoBehaviour, iState<AI>
             owner.stateMachine.ChangeState(owner.followState);
         }
 
-        if (!owner.AnimationIsPlaying(StringData.attack))
+        if (!owner.AnimationIsPlaying(StringData.attack) && !owner.AnimationIsPlaying(StringData.hurt))
         {
             Attack(owner);
         }

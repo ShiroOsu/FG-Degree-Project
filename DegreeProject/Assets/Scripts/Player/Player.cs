@@ -18,6 +18,8 @@ public partial class Player : NetworkBehaviour
     [SerializeField] private float health = 10f;
     [SyncVar] private float currentHealth;
     public float damage = 2f;
+    public Transform attackPoint;
+    [SerializeField] private float attackRange = 1f;
 
     [Header("Jump Settings")]
     public float maxJumpHeight = 10f;
@@ -249,6 +251,16 @@ public partial class Player : NetworkBehaviour
         if (!AnimationIsPlaying(StringData.attack))
         {
             animator.SetTrigger(StringData.attack);
+        }
+
+        Collider2D[] hitByAttack = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, LayerMask.GetMask(StringData.enemyLayer));
+
+        foreach (var col in hitByAttack)
+        {
+            if (col.GetComponent<AI>() != null)
+            {
+                col.GetComponent<AI>().TakeDamage(damage);
+            }
         }
     }
 

@@ -81,12 +81,29 @@ public class AI : NetworkBehaviour
     public void TakeDamage(float damage)
     {
         currentHealth -= damage;
-
-        animator.SetTrigger(StringData.hurt);
+       
+        StartCoroutine(HurtAnimation(0.5f));
 
         if (currentHealth <= 0f)
         {
+            animator.StopPlayback(); // Still wont play death animation
             StartCoroutine(Die(1f));
+        }
+    }
+
+    private IEnumerator HurtAnimation(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        animator.SetTrigger(StringData.hurt);
+    }
+
+    private IEnumerator Die(float delay)
+    {
+        if (gameObject != null)
+        {
+            animator.SetTrigger(StringData.death);
+            yield return new WaitForSeconds(delay);
+            NetworkServer.Destroy(gameObject);
         }
     }
 
@@ -133,14 +150,6 @@ public class AI : NetworkBehaviour
         }
     }
 
-    private IEnumerator Die(float delay)
-    {
-        animator.SetTrigger(StringData.death);
-
-        yield return new WaitForSeconds(delay);
-
-        NetworkServer.Destroy(gameObject);
-    }
 
 #if DEBUG
     private void OnDrawGizmos()
