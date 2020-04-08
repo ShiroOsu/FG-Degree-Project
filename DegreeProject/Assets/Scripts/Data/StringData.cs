@@ -26,6 +26,8 @@
     public static string hurt = "Hurt";
     public static string death = "Death";
 
-    // Masks
-    public static string ground = "Ground";
+    // Layer Masks
+    public static string groundLayer = "Ground";
+    public static string enemyLayer = "Enemy";
+    public static string playerLayer = "Player";
 }

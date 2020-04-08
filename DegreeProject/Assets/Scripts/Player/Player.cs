@@ -15,7 +15,8 @@ public partial class Player : NetworkBehaviour
     public Transform spawnPoint;
 
     [Header("Health & Damage")]
-    [SyncVar] public float health = 10f;
+    [SerializeField] private float health = 10f;
+    [SyncVar] private float currentHealth;
     public float damage = 2f;
 
     [Header("Jump Settings")]
@@ -49,7 +50,6 @@ public partial class Player : NetworkBehaviour
 
     private IEnumerator dashCorotine;
     private bool canDash = true;
-    private bool isDead = false;
     private bool isOnGround = false;
 
     // Instead of color, "Player 1, Player 2" or etc.
@@ -114,6 +114,8 @@ public partial class Player : NetworkBehaviour
 
     private void Start()
     {
+        currentHealth = health;
+
         gravity = -((2 * maxJumpHeight) / Mathf.Pow(timeToJumpApex, 2));
         maxJumpVelocity = 20f; //Mathf.Abs(gravity) * timeToJumpApex;
         minJumpVelocity = 4f; //Mathf.Sqrt(2 * Mathf.Abs(gravity) * minJumpHeight);
@@ -219,6 +221,11 @@ public partial class Player : NetworkBehaviour
         this.directionalInput = directionalInput;
     }
 
+    public Vector2 GetDirInput()
+    {
+        return directionalInput;
+    }
+
     private void OnJumpInputDown()
     {
         if (isOnGround)
@@ -297,40 +304,44 @@ public partial class Player : NetworkBehaviour
         }
     }
 
-    private void TakeDamage(float damage)
+    public void TakeDamage(float damage)
     {
-        health -= damage;
+        currentHealth -= damage;
 
         // Hurt animation
-        animator.SetTrigger(StringData.hurt);
-
-        if (health <= 0f)
+        if (currentHealth > 1f)
         {
-            isDead = true;
+            StartCoroutine(HurtAnimation(0.5f));
+        }
+
+        if (currentHealth <= 0f)
+        {
+            StartCoroutine(Die(1f));
         }
     }
 
-    private void DestroyIfDead()
+    private IEnumerator HurtAnimation(float delay)
     {
-        if (isDead)
+        yield return new WaitForSeconds(delay);
+        animator.SetTrigger(StringData.hurt);
+    }
+
+    private IEnumerator Die(float delay)
+    {
+        if (gameObject != null)
         {
-            if (gameObject != null)
-            {
-                // Death animation
-                animator.SetTrigger(StringData.death);
+            // Death animation
+            animator.SetTrigger(StringData.death);
 
-                // We want to be able to re-spawn the player after it has died,
-                // see we only despawn it from the server.
-                NetworkServer.UnSpawn(gameObject);
+            yield return new WaitForSeconds(delay);
 
-                //if (base.hasAuthority)
-                //{
-                //    //CmdRespawn();
-                //}
-
-                // Spectate alive player; ?
-            }
+            NetworkServer.UnSpawn(gameObject);
         }
+    }
+
+    public float GetHP()
+    {
+        return currentHealth;
     }
 }
 
