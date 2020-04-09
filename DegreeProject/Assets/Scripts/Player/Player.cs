@@ -4,7 +4,7 @@ using System.Collections;
 using Mirror;
 
 [RequireComponent(typeof(PlayerController))]
-public partial class Player : NetworkBehaviour
+public class Player : NetworkBehaviour
 {
     [Header("Player Components")]
     public PlayerController controller;
@@ -12,6 +12,7 @@ public partial class Player : NetworkBehaviour
     public Animator animator;
     public SpriteRenderer spriteRenderer;
     public Rigidbody2D playerBody2D;
+    public Health healthBar;
     public Transform spawnPoint;
 
     [Header("Health & Damage")]
@@ -117,6 +118,7 @@ public partial class Player : NetworkBehaviour
     private void Start()
     {
         currentHealth = health;
+        healthBar.SetMaxHealth(health);
 
         gravity = -((2 * maxJumpHeight) / Mathf.Pow(timeToJumpApex, 2));
         maxJumpVelocity = 20f; //Mathf.Abs(gravity) * timeToJumpApex;
@@ -203,16 +205,21 @@ public partial class Player : NetworkBehaviour
 
     private void FlipSpriteX()
     {
+        Vector2 right = new Vector2(1f, 1.5f);
+        Vector2 left = new Vector2(-1f, 1.5f);
+
         if (Mathf.Abs(directionalInput.x) > Mathf.Epsilon)
         {
             animator.SetInteger(StringData.animState, 2); // Run animation
 
             if (directionalInput.x > Mathf.Epsilon)
             {
+                attackPoint.localPosition = right;
                 spriteRenderer.flipX = true;
             }
             else if (directionalInput.x < Mathf.Epsilon)
             {
+                attackPoint.localPosition = left;
                 spriteRenderer.flipX = false;
             }
         }
@@ -319,6 +326,7 @@ public partial class Player : NetworkBehaviour
     public void TakeDamage(float damage)
     {
         currentHealth -= damage;
+        healthBar.SetHealth(currentHealth);
 
         // Hurt animation
         if (currentHealth > 1f)
@@ -344,8 +352,10 @@ public partial class Player : NetworkBehaviour
         {
             // Death animation
             animator.SetTrigger(StringData.death);
-
             yield return new WaitForSeconds(delay);
+
+            GetComponent<BoxCollider2D>().isTrigger = true;
+            GetComponent<Rigidbody2D>().constraints = RigidbodyConstraints2D.FreezeAll;
 
             NetworkServer.UnSpawn(gameObject);
         }
@@ -355,11 +365,6 @@ public partial class Player : NetworkBehaviour
     {
         return currentHealth;
     }
-}
-
-// Command & RPC's
-public partial class Player
-{
 
     [Command]
     private void CmdUpdateMovement()

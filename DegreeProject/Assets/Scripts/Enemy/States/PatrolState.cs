@@ -38,7 +38,7 @@ public class PatrolState : MonoBehaviour, iState<AI>
 
         foreach (var col in owner.detectionCircle)
         {
-            if (col.GetComponent<Player>() != null)
+            if (col.GetComponent<Player>() != null && col.GetComponent<Player>().GetHP() > 0f)
             {
                 owner.playerObject = col.gameObject;
                 return;

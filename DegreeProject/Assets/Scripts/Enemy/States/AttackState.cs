@@ -40,6 +40,11 @@ public class AttackState : MonoBehaviour, iState<AI>
         {
             if (col.GetComponent<Player>() != null)
             {
+                if (col.GetComponent<Player>().GetHP() <= 0f)
+                {
+                    owner.playerObject = null;
+                }
+
                 col.GetComponent<Player>().TakeDamage(owner.damage);
             }
         }

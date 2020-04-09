@@ -10,7 +10,7 @@ public class AI : NetworkBehaviour
     [SerializeField] private float health = 10f;
     [SyncVar] private float currentHealth;
     [SerializeField] private float speed = 2f;
-    
+
     public float damage = 1f;
     public Transform attackPoint;
     public float attackRange = 1f;
@@ -81,12 +81,12 @@ public class AI : NetworkBehaviour
     public void TakeDamage(float damage)
     {
         currentHealth -= damage;
-       
+
         StartCoroutine(HurtAnimation(0.5f));
 
         if (currentHealth <= 0f)
         {
-            animator.StopPlayback(); // Still wont play death animation
+            animator.StopPlayback(); // Still wont play death animation, it just pops
             StartCoroutine(Die(1f));
         }
     }
@@ -120,19 +120,32 @@ public class AI : NetworkBehaviour
     public void SetDirection(Vector2 direction)
     {
         dir = direction;
+        Vector2 right = new Vector2(1f, 1.5f);
+        Vector2 left = new Vector2(-1f, 1.5f);
+
+        if (dir.x > 0f)
+        {
+            attackPoint.localPosition = right;
+        }
+        else
+        {
+            attackPoint.localPosition = left;
+        }
     }
 
     private void FlipSpriteX()
     {
         if (playerObject != null)
         {
-            if (playerObject.GetComponent<Player>().GetDirInput().x < 0f)
+            Vector2 playerDir = playerObject.GetComponent<Player>().GetDirInput();
+            
+            if (playerDir.x < 0f)
             {
-                SetDirection((-1) * playerObject.GetComponent<Player>().GetDirInput());
-            } 
-            else if ((playerObject.GetComponent<Player>().GetDirInput().x > 0f))
+                SetDirection((-1) * playerDir);
+            }
+            else if (playerDir.x > 0f)
             {
-                SetDirection((-1) * playerObject.GetComponent<Player>().GetDirInput());
+                SetDirection((-1) * playerDir);
             }
         }
 
@@ -143,7 +156,8 @@ public class AI : NetworkBehaviour
             if (dir.x > 0f)
             {
                 spriteRenderer.flipX = true;
-            } else if (dir.x < 0f)
+            }
+            else if (dir.x < 0f)
             {
                 spriteRenderer.flipX = false;
             }
