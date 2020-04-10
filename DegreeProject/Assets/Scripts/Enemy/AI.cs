@@ -10,10 +10,10 @@ public class AI : NetworkBehaviour
     [SerializeField] private float health = 10f;
     [SyncVar] private float currentHealth;
     [SerializeField] private float speed = 2f;
-
     public float damage = 1f;
     public Transform attackPoint;
     public float attackRange = 1f;
+    public float attackRate = 0.25f;
 
     private Vector2 dir;
 
@@ -28,6 +28,9 @@ public class AI : NetworkBehaviour
             return maxDetectionDistance * maxDetectionDistance;
         }
     }
+
+    [Header("AI Components")]
+    public Health healthBar;
 
     // AI components
     public Collider2D[] detectionCircle { get; set; }
@@ -52,6 +55,7 @@ public class AI : NetworkBehaviour
         stateMachine.ChangeState(patrolState);
 
         currentHealth = health;
+        healthBar.SetMaxHealth(health);
     }
 
     private void Update()
@@ -69,6 +73,8 @@ public class AI : NetworkBehaviour
     public void PatrolMove(Vector2 direction)
     {
         transform.Translate(direction * speed * Time.deltaTime);
+
+        animator.SetInteger(StringData.animState, 2);
     }
 
     public void FollowMove()
@@ -76,17 +82,22 @@ public class AI : NetworkBehaviour
         // Move towards playerObjects location (x axis)
         transform.position = Vector2.MoveTowards(transform.position,
             new Vector2(playerObject.transform.position.x, transform.position.y), speed * Time.deltaTime);
+
+        animator.SetInteger(StringData.animState, 2);
     }
 
     public void TakeDamage(float damage)
     {
         currentHealth -= damage;
+        healthBar.SetHealth(currentHealth);
 
-        StartCoroutine(HurtAnimation(0.5f));
+        if (currentHealth > 0f)
+        {
+            StartCoroutine(HurtAnimation(0.5f));
+        }
 
         if (currentHealth <= 0f)
         {
-            animator.StopPlayback(); // Still wont play death animation, it just pops
             StartCoroutine(Die(1f));
         }
     }
@@ -151,8 +162,6 @@ public class AI : NetworkBehaviour
 
         if (Mathf.Abs(dir.x) > Mathf.Epsilon)
         {
-            animator.SetInteger(StringData.animState, 2);
-
             if (dir.x > 0f)
             {
                 spriteRenderer.flipX = true;
@@ -163,7 +172,6 @@ public class AI : NetworkBehaviour
             }
         }
     }
-
 
 #if DEBUG
     private void OnDrawGizmos()

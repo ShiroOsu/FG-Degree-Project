@@ -2,13 +2,17 @@
 
 public class AttackState : MonoBehaviour, iState<AI>
 {
+    private float nextAttackTime = 0f;
+
     public void EnterState(AI owner)
     {
+        owner.animator.SetInteger(StringData.animState, 1);
         Debug.Log("Enter AttackState");
     }
 
     public void ExitState(AI owner)
     {
+        owner.animator.SetInteger(StringData.animState, 2);
         Debug.Log("Exiting AttackState");
     }
 
@@ -19,9 +23,13 @@ public class AttackState : MonoBehaviour, iState<AI>
             owner.stateMachine.ChangeState(owner.followState);
         }
 
-        if (!owner.AnimationIsPlaying(StringData.attack) && !owner.AnimationIsPlaying(StringData.hurt))
+        if (Time.time >= nextAttackTime)
         {
-            Attack(owner);
+            if (!owner.AnimationIsPlaying(StringData.attack) && !owner.AnimationIsPlaying(StringData.hurt))
+            {
+                nextAttackTime = Time.time + (1f / owner.attackRate);
+                Attack(owner);
+            }
         }
 
         if (!owner.playerObject) // Player died maybe

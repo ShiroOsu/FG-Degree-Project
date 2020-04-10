@@ -36,7 +36,6 @@ public class Player : NetworkBehaviour
     [Tooltip("Dash cooldown in seconds")]
     public float dashCooldown = 10f;
 
-    //[Header("Gravity"), Tooltip("Should be a negative value")]
     private float maxGravity = -20f;
 
     [Header("Acceleration smoothing")]
@@ -121,10 +120,9 @@ public class Player : NetworkBehaviour
         healthBar.SetMaxHealth(health);
 
         gravity = -((2 * maxJumpHeight) / Mathf.Pow(timeToJumpApex, 2));
-        maxJumpVelocity = 20f; //Mathf.Abs(gravity) * timeToJumpApex;
-        minJumpVelocity = 4f; //Mathf.Sqrt(2 * Mathf.Abs(gravity) * minJumpHeight);
+        maxJumpVelocity = ((Mathf.Abs(gravity) * timeToJumpApex) * 0.60f);
+        minJumpVelocity = ((Mathf.Abs(gravity) * minJumpHeight) * 0.035f);
 
-        //Debug.Log("g=" + gravity + " max=" +maxJumpVelocity +" min=" +minJumpVelocity);
     }
 
     private void Update()
@@ -258,15 +256,15 @@ public class Player : NetworkBehaviour
         if (!AnimationIsPlaying(StringData.attack))
         {
             animator.SetTrigger(StringData.attack);
-        }
 
-        Collider2D[] hitByAttack = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, LayerMask.GetMask(StringData.enemyLayer));
+            Collider2D[] hitByAttack = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, LayerMask.GetMask(StringData.enemyLayer));
 
-        foreach (var col in hitByAttack)
-        {
-            if (col.GetComponent<AI>() != null)
+            foreach (var col in hitByAttack)
             {
-                col.GetComponent<AI>().TakeDamage(damage);
+                if (col.GetComponent<AI>() != null)
+                {
+                    col.GetComponent<AI>().TakeDamage(damage);
+                }
             }
         }
     }
@@ -361,16 +359,28 @@ public class Player : NetworkBehaviour
         }
     }
 
+    //private IEnumerator Respawn(float timer)
+    //{
+    //    yield return new WaitForSeconds(timer);
+    //    Debug.Log("Spawned");
+
+    //    NetworkServer.Spawn(gameObject);
+
+    //    GetComponent<BoxCollider2D>().isTrigger = false;
+    //    GetComponent<Rigidbody2D>().constraints = RigidbodyConstraints2D.None;
+    //    GetComponent<Rigidbody2D>().constraints = RigidbodyConstraints2D.FreezeRotation;
+    //}
+
     public float GetHP()
     {
         return currentHealth;
     }
 
-    [Command]
-    private void CmdUpdateMovement()
-    {
-        RpcUpdateMovement();
-    }
+    //[Command]
+    //private void CmdRespawnPlayer()
+    //{
+    //    RpcRespawnPlayer();
+    //}
 
     [Command]
     public void CmdOnShiftInputDown()
@@ -402,6 +412,11 @@ public class Player : NetworkBehaviour
         RpcOnJumpinputUp();
     }
 
+    //[ClientRpc]
+    //private void RpcRespawnPlayer()
+    //{
+    //    StartCoroutine(Respawn(5f));
+    //}
 
     [ClientRpc]
     private void RpcUpdateMovement()
