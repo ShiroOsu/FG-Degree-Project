@@ -12,7 +12,7 @@ public class Player : NetworkBehaviour
     public Animator animator;
     public SpriteRenderer spriteRenderer;
     public Rigidbody2D playerBody2D;
-    public Health healthBar;
+    /*[SyncVar]*/ public Health healthBar;
     public Transform spawnPoint;
 
     [Header("Health & Damage")]
@@ -364,7 +364,8 @@ public class Player : NetworkBehaviour
     //    yield return new WaitForSeconds(timer);
     //    Debug.Log("Spawned");
 
-    //    NetworkServer.Spawn(gameObject);
+    //    GameObject respawnPlayer = Instantiate(respawnObject);
+    //    NetworkServer.Spawn(respawnPlayer, connectionToClient);
 
     //    GetComponent<BoxCollider2D>().isTrigger = false;
     //    GetComponent<Rigidbody2D>().constraints = RigidbodyConstraints2D.None;
@@ -379,7 +380,7 @@ public class Player : NetworkBehaviour
     //[Command]
     //private void CmdRespawnPlayer()
     //{
-    //    RpcRespawnPlayer();
+    //    StartCoroutine(Respawn(5f));
     //}
 
     [Command]
@@ -411,12 +412,6 @@ public class Player : NetworkBehaviour
     {
         RpcOnJumpinputUp();
     }
-
-    //[ClientRpc]
-    //private void RpcRespawnPlayer()
-    //{
-    //    StartCoroutine(Respawn(5f));
-    //}
 
     [ClientRpc]
     private void RpcUpdateMovement()

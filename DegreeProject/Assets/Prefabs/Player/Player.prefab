@@ -254,6 +254,7 @@ MonoBehaviour:
   dashCooldown: 10
   accelerationTimeAirborne: 0.2
   accelerationTimeGrounded: 0.1
+  respawnObject: {fileID: 1689866831511430}
 --- !u!1 &1482276706545812032
 GameObject:
   m_ObjectHideFlags: 0
