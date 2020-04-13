@@ -4,7 +4,7 @@ using System.Collections;
 using Mirror;
 
 [RequireComponent(typeof(PlayerController))]
-public partial class Player : NetworkBehaviour
+public class Player : NetworkBehaviour
 {
     [Header("Player Components")]
     public PlayerController controller;
@@ -12,11 +12,15 @@ public partial class Player : NetworkBehaviour
     public Animator animator;
     public SpriteRenderer spriteRenderer;
     public Rigidbody2D playerBody2D;
+    /*[SyncVar]*/ public Health healthBar;
     public Transform spawnPoint;
 
     [Header("Health & Damage")]
-    [SyncVar] public float health = 10f;
+    [SerializeField] private float health = 10f;
+    [SyncVar] private float currentHealth;
     public float damage = 2f;
+    public Transform attackPoint;
+    [SerializeField] private float attackRange = 1f;
 
     [Header("Jump Settings")]
     public float maxJumpHeight = 10f;
@@ -32,7 +36,6 @@ public partial class Player : NetworkBehaviour
     [Tooltip("Dash cooldown in seconds")]
     public float dashCooldown = 10f;
 
-    //[Header("Gravity"), Tooltip("Should be a negative value")]
     private float maxGravity = -20f;
 
     [Header("Acceleration smoothing")]
@@ -49,7 +52,6 @@ public partial class Player : NetworkBehaviour
 
     private IEnumerator dashCorotine;
     private bool canDash = true;
-    private bool isDead = false;
     private bool isOnGround = false;
 
     // Instead of color, "Player 1, Player 2" or etc.
@@ -114,11 +116,13 @@ public partial class Player : NetworkBehaviour
 
     private void Start()
     {
-        gravity = -((2 * maxJumpHeight) / Mathf.Pow(timeToJumpApex, 2));
-        maxJumpVelocity = 20f; //Mathf.Abs(gravity) * timeToJumpApex;
-        minJumpVelocity = 4f; //Mathf.Sqrt(2 * Mathf.Abs(gravity) * minJumpHeight);
+        currentHealth = health;
+        healthBar.SetMaxHealth(health);
 
-        //Debug.Log("g=" + gravity + " max=" +maxJumpVelocity +" min=" +minJumpVelocity);
+        gravity = -((2 * maxJumpHeight) / Mathf.Pow(timeToJumpApex, 2));
+        maxJumpVelocity = ((Mathf.Abs(gravity) * timeToJumpApex) * 0.60f);
+        minJumpVelocity = ((Mathf.Abs(gravity) * minJumpHeight) * 0.035f);
+
     }
 
     private void Update()
@@ -199,16 +203,21 @@ public partial class Player : NetworkBehaviour
 
     private void FlipSpriteX()
     {
+        Vector2 right = new Vector2(1f, 1.5f);
+        Vector2 left = new Vector2(-1f, 1.5f);
+
         if (Mathf.Abs(directionalInput.x) > Mathf.Epsilon)
         {
             animator.SetInteger(StringData.animState, 2); // Run animation
 
             if (directionalInput.x > Mathf.Epsilon)
             {
+                attackPoint.localPosition = right;
                 spriteRenderer.flipX = true;
             }
             else if (directionalInput.x < Mathf.Epsilon)
             {
+                attackPoint.localPosition = left;
                 spriteRenderer.flipX = false;
             }
         }
@@ -217,6 +226,11 @@ public partial class Player : NetworkBehaviour
     private void SetDirectionalInput(Vector2 directionalInput)
     {
         this.directionalInput = directionalInput;
+    }
+
+    public Vector2 GetDirInput()
+    {
+        return directionalInput;
     }
 
     private void OnJumpInputDown()
@@ -242,6 +256,16 @@ public partial class Player : NetworkBehaviour
         if (!AnimationIsPlaying(StringData.attack))
         {
             animator.SetTrigger(StringData.attack);
+
+            Collider2D[] hitByAttack = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, LayerMask.GetMask(StringData.enemyLayer));
+
+            foreach (var col in hitByAttack)
+            {
+                if (col.GetComponent<AI>() != null)
+                {
+                    col.GetComponent<AI>().TakeDamage(damage);
+                }
+            }
         }
     }
 
@@ -297,52 +321,67 @@ public partial class Player : NetworkBehaviour
         }
     }
 
-    private void TakeDamage(float damage)
+    public void TakeDamage(float damage)
     {
-        health -= damage;
+        currentHealth -= damage;
+        healthBar.SetHealth(currentHealth);
 
         // Hurt animation
+        if (currentHealth > 1f)
+        {
+            StartCoroutine(HurtAnimation(0.5f));
+        }
+
+        if (currentHealth <= 0f)
+        {
+            StartCoroutine(Die(1f));
+        }
+    }
+
+    private IEnumerator HurtAnimation(float delay)
+    {
+        yield return new WaitForSeconds(delay);
         animator.SetTrigger(StringData.hurt);
+    }
 
-        if (health <= 0f)
+    private IEnumerator Die(float delay)
+    {
+        if (gameObject != null)
         {
-            isDead = true;
+            // Death animation
+            animator.SetTrigger(StringData.death);
+            yield return new WaitForSeconds(delay);
+
+            GetComponent<BoxCollider2D>().isTrigger = true;
+            GetComponent<Rigidbody2D>().constraints = RigidbodyConstraints2D.FreezeAll;
+
+            NetworkServer.UnSpawn(gameObject);
         }
     }
 
-    private void DestroyIfDead()
+    //private IEnumerator Respawn(float timer)
+    //{
+    //    yield return new WaitForSeconds(timer);
+    //    Debug.Log("Spawned");
+
+    //    GameObject respawnPlayer = Instantiate(respawnObject);
+    //    NetworkServer.Spawn(respawnPlayer, connectionToClient);
+
+    //    GetComponent<BoxCollider2D>().isTrigger = false;
+    //    GetComponent<Rigidbody2D>().constraints = RigidbodyConstraints2D.None;
+    //    GetComponent<Rigidbody2D>().constraints = RigidbodyConstraints2D.FreezeRotation;
+    //}
+
+    public float GetHP()
     {
-        if (isDead)
-        {
-            if (gameObject != null)
-            {
-                // Death animation
-                animator.SetTrigger(StringData.death);
-
-                // We want to be able to re-spawn the player after it has died,
-                // see we only despawn it from the server.
-                NetworkServer.UnSpawn(gameObject);
-
-                //if (base.hasAuthority)
-                //{
-                //    //CmdRespawn();
-                //}
-
-                // Spectate alive player; ?
-            }
-        }
+        return currentHealth;
     }
-}
 
-// Command & RPC's
-public partial class Player
-{
-
-    [Command]
-    private void CmdUpdateMovement()
-    {
-        RpcUpdateMovement();
-    }
+    //[Command]
+    //private void CmdRespawnPlayer()
+    //{
+    //    StartCoroutine(Respawn(5f));
+    //}
 
     [Command]
     public void CmdOnShiftInputDown()
@@ -373,7 +412,6 @@ public partial class Player
     {
         RpcOnJumpinputUp();
     }
-
 
     [ClientRpc]
     private void RpcUpdateMovement()

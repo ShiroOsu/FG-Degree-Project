@@ -1,7 +1,7 @@
 ﻿[System.Serializable]
 public class StateMachine<T>
 {
-    public State<T> currentState { get; private set; }
+    public iState<T> currentState { get; private set; }
     public T owner;
 
     public StateMachine(T owner)
@@ -10,7 +10,7 @@ public class StateMachine<T>
         currentState = null;
     }
 
-    public void ChangeState(State<T> newState)
+    public void ChangeState(iState<T> newState)
     {
         if (currentState != null)
         {
@@ -30,9 +30,9 @@ public class StateMachine<T>
     }
 }
 
-public abstract class State<T>
+public interface iState<T>
 {
-    public abstract void EnterState(T owner);
-    public abstract void ExitState(T owner);
-    public abstract void UpdateState(T owner);
+    void EnterState(T owner);
+    void ExitState(T owner);
+    void UpdateState(T owner);
 }
