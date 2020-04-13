@@ -82,7 +82,7 @@ public class AI : NetworkBehaviour
     {
         transform.Translate(direction * speed * Time.deltaTime);
 
-        animator.SetInteger(StringData.animState, (int)AnimState.run);
+        RpcAnimState(AnimState.run);
     }
 
     public void FollowMove()
@@ -91,7 +91,7 @@ public class AI : NetworkBehaviour
         transform.position = Vector2.MoveTowards(transform.position,
             new Vector2(playerObject.transform.position.x, transform.position.y), speed * Time.deltaTime);
 
-        animator.SetInteger(StringData.animState, (int)AnimState.run);
+        RpcAnimState(AnimState.run);
     }
 
     public void TakeDamage(float damage)
@@ -101,22 +101,16 @@ public class AI : NetworkBehaviour
         
         if (currentHealth <= 0f)
         {
-            StartCoroutine(Die(1f));
+            RpcDieAnimation();
             return;
         }
 
         if (currentHealth > 0f & !hurtCd)
         {
-            RpcCall();
+            RpcHurtAnimation();
             hurtCd = true;
             StartCoroutine(HurtAnimCd(1.5f));
         }
-    }
-
-    [ClientRpc]
-    private void RpcCall()
-    {
-        StartCoroutine(HurtAnimation(0.5f));
     }
 
     private IEnumerator HurtAnimCd(float seconds)
@@ -148,7 +142,7 @@ public class AI : NetworkBehaviour
 
     public void AttackAnimation()
     {
-        animator.SetTrigger(StringData.attack);
+        RpcAttackAnimation();
     }
 
     public void SetDirection(Vector2 direction)
@@ -176,6 +170,30 @@ public class AI : NetworkBehaviour
         {
             spriteRenderer.flipX = dir.x > 0f;
         }
+    }
+
+    [ClientRpc]
+    private void RpcHurtAnimation()
+    {
+        StartCoroutine(HurtAnimation(0.5f));
+    }
+
+    [ClientRpc]
+    private void RpcDieAnimation()
+    {
+        StartCoroutine(Die(1f));
+    }
+
+    [ClientRpc]
+    public void RpcAttackAnimation()
+    {
+        animator.SetTrigger(StringData.attack);
+    }
+
+    [ClientRpc]
+    public void RpcAnimState(AnimState animation)
+    {
+        animator.SetInteger(StringData.animState, (int)animation);
     }
 
 #if DEBUG

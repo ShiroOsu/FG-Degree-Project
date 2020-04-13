@@ -6,13 +6,13 @@ public class AttackState : MonoBehaviour, iState<AI>
 
     public void EnterState(AI owner)
     {
-        owner.animator.SetInteger(StringData.animState, (int)AI.AnimState.combat);
+        owner.RpcAnimState(AI.AnimState.combat);
         Debug.Log("Enter AttackState");
     }
 
     public void ExitState(AI owner)
     {
-        owner.animator.SetInteger(StringData.animState, (int)AI.AnimState.run);
+        owner.RpcAnimState(AI.AnimState.run);
         Debug.Log("Exiting AttackState");
     }
 
@@ -42,7 +42,7 @@ public class AttackState : MonoBehaviour, iState<AI>
 
     private void Attack(AI owner)
     {
-        owner.AttackAnimation();
+        owner.RpcAttackAnimation();
 
         var point = owner.dir.x > 0f ? owner.attackPointRight.position : owner.attackPointLeft.position;
 

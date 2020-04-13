@@ -58,6 +58,7 @@ public class Player : NetworkBehaviour
 
     public float GetHP => currentHealth;
     public Vector2 GetDirInput => directionalInput;
+    private Vector2 lastDirInput;
 
     private const float maxJumpMultiplier = 0.6f;
     private const float minJumpMultiplier = 0.035f;
@@ -226,6 +227,11 @@ public class Player : NetworkBehaviour
 
     private void SetDirectionalInput(Vector2 directionalInput)
     {
+        if (directionalInput.x != 0f)
+        {
+            lastDirInput = this.directionalInput;
+        }
+
         this.directionalInput = directionalInput;
     }
 
@@ -249,7 +255,7 @@ public class Player : NetworkBehaviour
 
     private void OnAttackInputDown()
     {
-        var point = GetDirInput.x > 0f ? attackPointRight.position : attackPointLeft.position;
+        var point = lastDirInput.x > 0f ? attackPointRight.position : attackPointLeft.position;
 
         if (!AnimationIsPlaying(StringData.attack))
         {
@@ -389,12 +395,6 @@ public class Player : NetworkBehaviour
     public void CmdOnJumpInputUp()
     {
         RpcOnJumpinputUp();
-    }
-
-    [ClientRpc]
-    private void RpcUpdateMovement()
-    {
-        UpdateMovement();
     }
 
     [ClientRpc]
