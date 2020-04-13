@@ -6,13 +6,13 @@ public class AttackState : MonoBehaviour, iState<AI>
 
     public void EnterState(AI owner)
     {
-        owner.animator.SetInteger(StringData.animState, 1);
+        owner.animator.SetInteger(StringData.animState, (int)AI.AnimState.combat);
         Debug.Log("Enter AttackState");
     }
 
     public void ExitState(AI owner)
     {
-        owner.animator.SetInteger(StringData.animState, 2);
+        owner.animator.SetInteger(StringData.animState, (int)AI.AnimState.run);
         Debug.Log("Exiting AttackState");
     }
 
@@ -21,6 +21,7 @@ public class AttackState : MonoBehaviour, iState<AI>
         if (owner.sqrCurrDistance > owner.attackRange)
         {
             owner.stateMachine.ChangeState(owner.followState);
+            return;
         }
 
         if (Time.time >= nextAttackTime)
@@ -35,6 +36,7 @@ public class AttackState : MonoBehaviour, iState<AI>
         if (!owner.playerObject) // Player died maybe
         {
             owner.stateMachine.ChangeState(owner.patrolState);
+            return;
         }
     }
 
@@ -42,18 +44,22 @@ public class AttackState : MonoBehaviour, iState<AI>
     {
         owner.AttackAnimation();
 
-        Collider2D[] hitByAttack = Physics2D.OverlapCircleAll(owner.attackPoint.position, owner.attackRange, LayerMask.GetMask(StringData.playerLayer));
+        var point = owner.dir.x > 0f ? owner.attackPointRight.position : owner.attackPointLeft.position;
+
+        Collider2D[] hitByAttack = Physics2D.OverlapCircleAll(point, owner.attackRange, LayerMask.GetMask(StringData.playerLayer));
 
         foreach (var col in hitByAttack)
         {
-            if (col.GetComponent<Player>() != null)
+            var player = col.GetComponent<Player>();
+
+            if (player != null)
             {
-                if (col.GetComponent<Player>().GetHP() <= 0f)
+                if (player.GetHP <= 0f)
                 {
                     owner.playerObject = null;
                 }
 
-                col.GetComponent<Player>().TakeDamage(owner.damage);
+                player.TakeDamage(owner.damage);
             }
         }
     }

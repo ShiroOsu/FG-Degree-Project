@@ -39,6 +39,7 @@ Transform:
   - {fileID: 2371345532132213390}
   - {fileID: 4318227278465926355}
   - {fileID: 7480206321066633319}
+  - {fileID: 831320039740466472}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -244,7 +245,8 @@ MonoBehaviour:
   spawnPoint: {fileID: 0}
   health: 10
   damage: 2
-  attackPoint: {fileID: 4318227278465926355}
+  attackPointRight: {fileID: 831320039740466472}
+  attackPointLeft: {fileID: 4318227278465926355}
   attackRange: 1
   maxJumpHeight: 6
   minJumpHeight: 2
@@ -254,7 +256,6 @@ MonoBehaviour:
   dashCooldown: 10
   accelerationTimeAirborne: 0.2
   accelerationTimeGrounded: 0.1
-  respawnObject: {fileID: 1689866831511430}
 --- !u!1 &1482276706545812032
 GameObject:
   m_ObjectHideFlags: 0
@@ -328,6 +329,36 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!1 &2529560431666174768
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 831320039740466472}
+  m_Layer: 9
+  m_Name: AttackPointRight
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &831320039740466472
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2529560431666174768}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1, y: 1.5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 4805181885227780}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2996112640057162009
 GameObject:
   m_ObjectHideFlags: 0
@@ -528,6 +559,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f5e54f21291a64a46b26019faeef132c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  syncMode: 0
+  syncInterval: 0.1
   slider: {fileID: 8817888005642084425}
 --- !u!1 &5438613172166116338
 GameObject:
@@ -612,7 +645,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4318227278465926355}
   m_Layer: 9
-  m_Name: AttackPoint
+  m_Name: AttackPointLeft
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

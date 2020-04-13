@@ -12,14 +12,15 @@ public class Player : NetworkBehaviour
     public Animator animator;
     public SpriteRenderer spriteRenderer;
     public Rigidbody2D playerBody2D;
-    /*[SyncVar]*/ public Health healthBar;
+    public Health healthBar;
     public Transform spawnPoint;
 
     [Header("Health & Damage")]
     [SerializeField] private float health = 10f;
     [SyncVar] private float currentHealth;
     public float damage = 2f;
-    public Transform attackPoint;
+    [SerializeField] private Transform attackPointRight = null;
+    [SerializeField] private Transform attackPointLeft = null;
     [SerializeField] private float attackRange = 1f;
 
     [Header("Jump Settings")]
@@ -36,7 +37,7 @@ public class Player : NetworkBehaviour
     [Tooltip("Dash cooldown in seconds")]
     public float dashCooldown = 10f;
 
-    private float maxGravity = -20f;
+    private const float maxGravity = -20f;
 
     [Header("Acceleration smoothing")]
     public float accelerationTimeAirborne = 0.2f;
@@ -53,6 +54,13 @@ public class Player : NetworkBehaviour
     private IEnumerator dashCorotine;
     private bool canDash = true;
     private bool isOnGround = false;
+    private bool hurtCd = false;
+
+    public float GetHP => currentHealth;
+    public Vector2 GetDirInput => directionalInput;
+
+    private const float maxJumpMultiplier = 0.6f;
+    private const float minJumpMultiplier = 0.035f;
 
     // Instead of color, "Player 1, Player 2" or etc.
     private List<Color> colorList = new List<Color>
@@ -66,6 +74,13 @@ public class Player : NetworkBehaviour
         Color.grey,
         Color.yellow,
     };
+
+    private enum animState
+    {
+        idle,
+        combat,
+        run,
+    }
 
     private void Awake()
     {
@@ -120,9 +135,8 @@ public class Player : NetworkBehaviour
         healthBar.SetMaxHealth(health);
 
         gravity = -((2 * maxJumpHeight) / Mathf.Pow(timeToJumpApex, 2));
-        maxJumpVelocity = ((Mathf.Abs(gravity) * timeToJumpApex) * 0.60f);
-        minJumpVelocity = ((Mathf.Abs(gravity) * minJumpHeight) * 0.035f);
-
+        maxJumpVelocity = ((Mathf.Abs(gravity) * timeToJumpApex) * maxJumpMultiplier);
+        minJumpVelocity = ((Mathf.Abs(gravity) * minJumpHeight) * minJumpMultiplier);
     }
 
     private void Update()
@@ -203,34 +217,16 @@ public class Player : NetworkBehaviour
 
     private void FlipSpriteX()
     {
-        Vector2 right = new Vector2(1f, 1.5f);
-        Vector2 left = new Vector2(-1f, 1.5f);
-
         if (Mathf.Abs(directionalInput.x) > Mathf.Epsilon)
         {
-            animator.SetInteger(StringData.animState, 2); // Run animation
-
-            if (directionalInput.x > Mathf.Epsilon)
-            {
-                attackPoint.localPosition = right;
-                spriteRenderer.flipX = true;
-            }
-            else if (directionalInput.x < Mathf.Epsilon)
-            {
-                attackPoint.localPosition = left;
-                spriteRenderer.flipX = false;
-            }
+            animator.SetInteger(StringData.animState, (int)animState.run);
+            spriteRenderer.flipX = directionalInput.x > 0f;
         }
     }
 
     private void SetDirectionalInput(Vector2 directionalInput)
     {
         this.directionalInput = directionalInput;
-    }
-
-    public Vector2 GetDirInput()
-    {
-        return directionalInput;
     }
 
     private void OnJumpInputDown()
@@ -253,18 +249,17 @@ public class Player : NetworkBehaviour
 
     private void OnAttackInputDown()
     {
+        var point = GetDirInput.x > 0f ? attackPointRight.position : attackPointLeft.position;
+
         if (!AnimationIsPlaying(StringData.attack))
         {
             animator.SetTrigger(StringData.attack);
 
-            Collider2D[] hitByAttack = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, LayerMask.GetMask(StringData.enemyLayer));
+            Collider2D[] hitByAttack = Physics2D.OverlapCircleAll(point, attackRange, LayerMask.GetMask(StringData.enemyLayer));
 
             foreach (var col in hitByAttack)
             {
-                if (col.GetComponent<AI>() != null)
-                {
-                    col.GetComponent<AI>().TakeDamage(damage);
-                }
+                col.GetComponent<AI>()?.TakeDamage(damage);
             }
         }
     }
@@ -294,8 +289,8 @@ public class Player : NetworkBehaviour
     // Falling / Jump
     private void JumpAnimation()
     {
-        animator.SetTrigger(StringData.jump); // Jump animation
-        animator.SetBool(StringData.grounded, false); // To continue being in jump animation set grounded to false
+        animator.SetTrigger(StringData.jump);
+        animator.SetBool(StringData.grounded, false);
     }
 
     private void OnShiftInputDown()
@@ -312,12 +307,12 @@ public class Player : NetworkBehaviour
     {
         if (Mathf.Abs(directionalInput.x) < Mathf.Epsilon)
         {
-            animator.SetInteger(StringData.animState, 0); // Idle animation
+            animator.SetInteger(StringData.animState, (int)animState.idle);
         }
 
         if (controller.boxController.collisionsInfo.below || isOnGround)
         {
-            animator.SetBool(StringData.grounded, true); // Standing animation (Idle)
+            animator.SetBool(StringData.grounded, true);
         }
     }
 
@@ -325,17 +320,25 @@ public class Player : NetworkBehaviour
     {
         currentHealth -= damage;
         healthBar.SetHealth(currentHealth);
-
-        // Hurt animation
-        if (currentHealth > 1f)
-        {
-            StartCoroutine(HurtAnimation(0.5f));
-        }
-
+        
         if (currentHealth <= 0f)
         {
             StartCoroutine(Die(1f));
+            return;
         }
+        
+        if (currentHealth > 1f && !hurtCd)
+        {
+            StartCoroutine(HurtAnimation(0.5f));
+            hurtCd = true;
+            StartCoroutine(HurtAnimCd(1.5f));
+        }
+    }
+
+    private IEnumerator HurtAnimCd(float seconds)
+    {
+        yield return new WaitForSeconds(seconds);
+        hurtCd = false;
     }
 
     private IEnumerator HurtAnimation(float delay)
@@ -348,7 +351,6 @@ public class Player : NetworkBehaviour
     {
         if (gameObject != null)
         {
-            // Death animation
             animator.SetTrigger(StringData.death);
             yield return new WaitForSeconds(delay);
 
@@ -358,30 +360,6 @@ public class Player : NetworkBehaviour
             NetworkServer.UnSpawn(gameObject);
         }
     }
-
-    //private IEnumerator Respawn(float timer)
-    //{
-    //    yield return new WaitForSeconds(timer);
-    //    Debug.Log("Spawned");
-
-    //    GameObject respawnPlayer = Instantiate(respawnObject);
-    //    NetworkServer.Spawn(respawnPlayer, connectionToClient);
-
-    //    GetComponent<BoxCollider2D>().isTrigger = false;
-    //    GetComponent<Rigidbody2D>().constraints = RigidbodyConstraints2D.None;
-    //    GetComponent<Rigidbody2D>().constraints = RigidbodyConstraints2D.FreezeRotation;
-    //}
-
-    public float GetHP()
-    {
-        return currentHealth;
-    }
-
-    //[Command]
-    //private void CmdRespawnPlayer()
-    //{
-    //    StartCoroutine(Respawn(5f));
-    //}
 
     [Command]
     public void CmdOnShiftInputDown()

@@ -19,7 +19,7 @@
     public static string nullString = "null";
 
     // Animation strings
-    public static string animState = "AnimState"; // 2 = run, 0 = idle, 1 = combat idle
+    public static string animState = "AnimState";
     public static string grounded = "Grounded";
     public static string jump = "Jump";
     public static string attack = "Attack";

@@ -22,6 +22,7 @@ public class PatrolState : MonoBehaviour, iState<AI>
         if (owner.playerObject)
         {
             owner.stateMachine.ChangeState(owner.followState);
+            return;
         }
 
         if (!owner.playerObject)
@@ -38,7 +39,9 @@ public class PatrolState : MonoBehaviour, iState<AI>
 
         foreach (var col in owner.detectionCircle)
         {
-            if (col.GetComponent<Player>() != null && col.GetComponent<Player>().GetHP() > 0f)
+            var player = col.GetComponent<Player>();
+
+            if (player != null && player.GetHP > 0f)
             {
                 owner.playerObject = col.gameObject;
                 return;

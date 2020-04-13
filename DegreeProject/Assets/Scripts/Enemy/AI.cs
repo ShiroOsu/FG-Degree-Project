@@ -11,23 +11,19 @@ public class AI : NetworkBehaviour
     [SyncVar] private float currentHealth;
     [SerializeField] private float speed = 2f;
     public float damage = 1f;
-    public Transform attackPoint;
+    public Transform attackPointRight;
+    public Transform attackPointLeft;
     public float attackRange = 1f;
     public float attackRate = 0.25f;
 
-    private Vector2 dir;
+    public Vector2 dir { get; private set; }
+    private bool hurtCd = false;
 
     [Header("Detection Settings")]
     [SerializeField] private float maxDetectionDistance = 8f;
     public float detectionRadius = 5f;
     public float sqrCurrDistance { get; set; }
-    public float sqrMaxDistance
-    {
-        get
-        {
-            return maxDetectionDistance * maxDetectionDistance;
-        }
-    }
+    public float sqrMaxDistance => maxDetectionDistance * maxDetectionDistance;
 
     [Header("AI Components")]
     public Health healthBar;
@@ -41,6 +37,13 @@ public class AI : NetworkBehaviour
     public AttackState attackState { get; private set; }
     public Animator animator { get; private set; }
     public SpriteRenderer spriteRenderer { get; private set; }
+
+    public enum AnimState
+    {
+        idle,
+        combat,
+        run,
+    }
 
     private void Start()
     {
@@ -60,21 +63,26 @@ public class AI : NetworkBehaviour
 
     private void Update()
     {
-        if (playerObject != null)
-        {
-            sqrCurrDistance = (playerObject.transform.position - transform.position).sqrMagnitude;
-        }
+        UpdateDistanceToPlayer();
 
         stateMachine.UpdateState();
 
         FlipSpriteX();
     }
 
+    private void UpdateDistanceToPlayer()
+    {
+        if (playerObject != null)
+        {
+            sqrCurrDistance = (playerObject.transform.position - transform.position).sqrMagnitude;
+        }
+    }
+
     public void PatrolMove(Vector2 direction)
     {
         transform.Translate(direction * speed * Time.deltaTime);
 
-        animator.SetInteger(StringData.animState, 2);
+        animator.SetInteger(StringData.animState, (int)AnimState.run);
     }
 
     public void FollowMove()
@@ -83,23 +91,38 @@ public class AI : NetworkBehaviour
         transform.position = Vector2.MoveTowards(transform.position,
             new Vector2(playerObject.transform.position.x, transform.position.y), speed * Time.deltaTime);
 
-        animator.SetInteger(StringData.animState, 2);
+        animator.SetInteger(StringData.animState, (int)AnimState.run);
     }
 
     public void TakeDamage(float damage)
     {
         currentHealth -= damage;
         healthBar.SetHealth(currentHealth);
-
-        if (currentHealth > 0f)
-        {
-            StartCoroutine(HurtAnimation(0.5f));
-        }
-
+        
         if (currentHealth <= 0f)
         {
             StartCoroutine(Die(1f));
+            return;
         }
+
+        if (currentHealth > 0f & !hurtCd)
+        {
+            RpcCall();
+            hurtCd = true;
+            StartCoroutine(HurtAnimCd(1.5f));
+        }
+    }
+
+    [ClientRpc]
+    private void RpcCall()
+    {
+        StartCoroutine(HurtAnimation(0.5f));
+    }
+
+    private IEnumerator HurtAnimCd(float seconds)
+    {
+        yield return new WaitForSeconds(seconds);
+        hurtCd = false;
     }
 
     private IEnumerator HurtAnimation(float delay)
@@ -131,25 +154,14 @@ public class AI : NetworkBehaviour
     public void SetDirection(Vector2 direction)
     {
         dir = direction;
-        Vector2 right = new Vector2(1f, 1.5f);
-        Vector2 left = new Vector2(-1f, 1.5f);
-
-        if (dir.x > 0f)
-        {
-            attackPoint.localPosition = right;
-        }
-        else
-        {
-            attackPoint.localPosition = left;
-        }
     }
 
     private void FlipSpriteX()
     {
         if (playerObject != null)
         {
-            Vector2 playerDir = playerObject.GetComponent<Player>().GetDirInput();
-            
+            var playerDir = playerObject.GetComponent<Player>().GetDirInput;
+
             if (playerDir.x < 0f)
             {
                 SetDirection((-1) * playerDir);
@@ -162,14 +174,7 @@ public class AI : NetworkBehaviour
 
         if (Mathf.Abs(dir.x) > Mathf.Epsilon)
         {
-            if (dir.x > 0f)
-            {
-                spriteRenderer.flipX = true;
-            }
-            else if (dir.x < 0f)
-            {
-                spriteRenderer.flipX = false;
-            }
+            spriteRenderer.flipX = dir.x > 0f;
         }
     }
 
@@ -181,8 +186,6 @@ public class AI : NetworkBehaviour
 
         Gizmos.DrawWireCube(new Vector3(transform.position.x - 0.5f, transform.position.y + 0.65f, 0f), new Vector3(0.15f, 1.15f, 0f));
         Gizmos.DrawWireCube(new Vector3(transform.position.x + 0.5f, transform.position.y + 0.65f, 0f), new Vector3(0.15f, 1.15f, 0f));
-
-        Gizmos.DrawWireSphere(attackPoint.position, attackRange);
     }
 #endif
 }

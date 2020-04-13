@@ -17,6 +17,7 @@ public class FollowState : MonoBehaviour, iState<AI>
         if (!owner.playerObject)
         {
             owner.stateMachine.ChangeState(owner.patrolState);
+            return;
         }
 
         if (owner.playerObject) // To ensure that we don't call null reference after playerObject is set to null
@@ -35,6 +36,7 @@ public class FollowState : MonoBehaviour, iState<AI>
         } else
         {
             owner.stateMachine.ChangeState(owner.attackState);
+            return;
         }
 
         if (owner.sqrCurrDistance > owner.sqrMaxDistance)
