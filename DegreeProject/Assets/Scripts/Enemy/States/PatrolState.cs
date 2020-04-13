@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class PatrolState : MonoBehaviour, iState<AI>
+public class PatrolState : iState<AI>
 {
     private bool rightWall;
     private bool leftWall;

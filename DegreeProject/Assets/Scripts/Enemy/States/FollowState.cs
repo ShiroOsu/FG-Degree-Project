@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class FollowState : MonoBehaviour, iState<AI>
+public class FollowState : iState<AI>
 {
     public void EnterState(AI owner)
     {

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class AttackState : MonoBehaviour, iState<AI>
+public class AttackState : iState<AI>
 {
     private float nextAttackTime = 0f;
 

@@ -47,9 +47,9 @@ public class AI : NetworkBehaviour
 
     private void Start()
     {
-        followState = GetComponent<FollowState>();
-        patrolState = GetComponent<PatrolState>();
-        attackState = GetComponent<AttackState>();
+        followState = new FollowState();
+        patrolState = new PatrolState();
+        attackState = new AttackState();
 
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
