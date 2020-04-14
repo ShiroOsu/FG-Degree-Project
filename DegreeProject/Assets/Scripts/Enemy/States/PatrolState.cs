@@ -6,6 +6,7 @@ public class PatrolState : iState<AI>
     private bool leftWall;
     private Vector2 direction;
     private Vector2 boxSize = new Vector2(0.15f, 1.15f);
+    private string[] layers = { StringData.groundLayer };
 
     public void EnterState(AI owner)
     {
@@ -62,6 +63,14 @@ public class PatrolState : iState<AI>
             direction = Vector2.right;
         }
 
+        // When spawning a AI in an open Area it will not know if it
+        // should start walking to the left or right
+        if (direction.x == 0f)
+        {
+            System.Random rand = new System.Random();
+            direction = rand.Next(2) == 1 ? Vector2.right : Vector2.left;
+        }
+
         owner.SetDirection(direction);
         owner.PatrolMove(direction);
     }
@@ -76,7 +85,7 @@ public class PatrolState : iState<AI>
         {
             Vector2 direction = Vector2.right;
 
-            RaycastHit2D hit = Physics2D.BoxCast(originRight, boxSize, 0, direction, distance, LayerMask.GetMask(StringData.groundLayer));
+            RaycastHit2D hit = Physics2D.BoxCast(originRight, boxSize, 0, direction, distance, LayerMask.GetMask(layers));
 
             if (hit)
             {
@@ -88,7 +97,7 @@ public class PatrolState : iState<AI>
         {
             Vector2 direction = Vector2.left;
 
-            RaycastHit2D hit = Physics2D.BoxCast(originLeft, boxSize, 0, direction, distance, LayerMask.GetMask(StringData.groundLayer));
+            RaycastHit2D hit = Physics2D.BoxCast(originLeft, boxSize, 0, direction, distance, LayerMask.GetMask(layers));
 
             if (hit)
             {
