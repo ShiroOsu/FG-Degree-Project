@@ -1,4 +1,5 @@
 ﻿#define DEBUG
+#undef DEBUG
 
 using UnityEngine;
 using Mirror;
@@ -201,9 +202,10 @@ public class AI : NetworkBehaviour
     {
         Gizmos.DrawWireSphere(gameObject.transform.position, detectionRadius);
         Gizmos.DrawWireSphere(gameObject.transform.position, maxDetectionDistance);
-
         Gizmos.DrawWireCube(new Vector3(transform.position.x - 0.5f, transform.position.y + 0.65f, 0f), new Vector3(0.15f, 1.15f, 0f));
         Gizmos.DrawWireCube(new Vector3(transform.position.x + 0.5f, transform.position.y + 0.65f, 0f), new Vector3(0.15f, 1.15f, 0f));
+        Gizmos.DrawWireCube(new Vector2(transform.position.x + 0.5f, transform.position.y + 0.65f), new Vector2(0.15f, 1.15f));
+        Gizmos.DrawWireCube(new Vector2(transform.position.x - 0.5f, transform.position.y + 0.65f), new Vector2(0.15f, 1.15f));
     }
 #endif
 }

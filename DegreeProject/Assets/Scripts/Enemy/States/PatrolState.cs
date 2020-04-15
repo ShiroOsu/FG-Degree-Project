@@ -6,10 +6,19 @@ public class PatrolState : iState<AI>
     private bool leftWall;
     private Vector2 direction;
     private Vector2 boxSize = new Vector2(0.15f, 1.15f);
-    private string[] layers = { StringData.groundLayer };
+    private string[] ground = { StringData.groundLayer };
+    private string[] enemy = { StringData.enemyLayer };
 
     public void EnterState(AI owner)
     {
+        // When spawning a AI in an open Area it will not know if it
+        // should start walking to the left or right
+        if (direction.x == 0f)
+        {
+            System.Random rand = new System.Random();
+            direction = rand.Next(2) == 1 ? Vector2.right : Vector2.left;
+        }
+
         Debug.Log("Entering PatrolState.");
     }
 
@@ -48,7 +57,7 @@ public class PatrolState : iState<AI>
                 return;
             }
         }
-    }  
+    }
 
     private void Patrol(AI owner)
     {
@@ -57,18 +66,10 @@ public class PatrolState : iState<AI>
         if (rightWall)
         {
             direction = Vector2.left;
-        } 
+        }
         else if (leftWall)
         {
             direction = Vector2.right;
-        }
-
-        // When spawning a AI in an open Area it will not know if it
-        // should start walking to the left or right
-        if (direction.x == 0f)
-        {
-            System.Random rand = new System.Random();
-            direction = rand.Next(2) == 1 ? Vector2.right : Vector2.left;
         }
 
         owner.SetDirection(direction);
@@ -85,24 +86,48 @@ public class PatrolState : iState<AI>
         {
             Vector2 direction = Vector2.right;
 
-            RaycastHit2D hit = Physics2D.BoxCast(originRight, boxSize, 0, direction, distance, LayerMask.GetMask(layers));
+            RaycastHit2D hit = Physics2D.BoxCast(originRight, boxSize, 0f, direction, distance, LayerMask.GetMask(ground));
+
+            // On the right side of the enemy the distance of the ray needs to be longer because otherwise it wont hit
+            RaycastHit2D hitE = Physics2D.Raycast(originRight, direction, 0.3f, LayerMask.GetMask(enemy));
 
             if (hit)
             {
                 rightWall = true;
-            } else { rightWall = false; }
+            }
+            else { rightWall = false; }
+
+            if (hitE.collider != null)
+            {
+                if ((hitE.collider.name != owner.name))
+                {
+                    rightWall = true;
+                }
+                else { rightWall = false; }
+            }
         }
 
         // Left 
         {
             Vector2 direction = Vector2.left;
 
-            RaycastHit2D hit = Physics2D.BoxCast(originLeft, boxSize, 0, direction, distance, LayerMask.GetMask(layers));
+            RaycastHit2D hit = Physics2D.BoxCast(originLeft, boxSize, 0f, direction, distance, LayerMask.GetMask(ground));
+            RaycastHit2D hitE = Physics2D.Raycast(originLeft, direction, distance, LayerMask.GetMask(enemy));
 
             if (hit)
             {
                 leftWall = true;
-            } else { leftWall = false; }
+            }
+            else { leftWall = false; }
+
+            if (hitE.collider != null)
+            {
+                if ((hitE.collider.name != owner.name))
+                {
+                    leftWall = true;
+                }
+                else { leftWall = false; }
+            }
         }
     }
 }
