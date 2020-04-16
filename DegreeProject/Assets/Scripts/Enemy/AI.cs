@@ -132,7 +132,7 @@ public class AI : NetworkBehaviour
         {
             animator.SetTrigger(StringData.death);
             yield return new WaitForSeconds(delay);
-            NetworkServer.Destroy(gameObject);
+            ObjectPool.Despawn(gameObject);
         }
     }
 
