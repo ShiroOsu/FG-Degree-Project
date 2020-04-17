@@ -40,6 +40,7 @@ Transform:
   - {fileID: 4318227278465926355}
   - {fileID: 7480206321066633319}
   - {fileID: 831320039740466472}
+  - {fileID: 4952524273387230161}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -236,13 +237,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
+  prefab: {fileID: 302475681486006492}
   controller: {fileID: 8615055910702153715}
   playerCamera: {fileID: 4345298095977105852}
   animator: {fileID: 95346456782871180}
   spriteRenderer: {fileID: 212259381048184306}
   playerBody2D: {fileID: 50512961935941442}
   healthBar: {fileID: 5891370175007946105}
-  spawnPoint: {fileID: 0}
+  spawnPoint: {fileID: 4952524273387230161}
   health: 10
   damage: 2
   attackPointRight: {fileID: 831320039740466472}
@@ -358,6 +360,36 @@ Transform:
   m_Children: []
   m_Father: {fileID: 4805181885227780}
   m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2713139416836670029
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4952524273387230161}
+  m_Layer: 9
+  m_Name: SpawnPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4952524273387230161
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2713139416836670029}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 4805181885227780}
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2996112640057162009
 GameObject:

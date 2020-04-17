@@ -8,8 +8,8 @@ using System.Collections;
 public class AI : NetworkBehaviour
 {
     [Header("AI Settings")]
-    [SerializeField] private float health = 10f;
-    [SyncVar] private float currentHealth;
+    public float maxHealth = 10f;
+    [SyncVar] public float currentHealth;
     [SerializeField] private float speed = 2f;
     public float damage = 1f;
     public Transform attackPointRight;
@@ -58,8 +58,8 @@ public class AI : NetworkBehaviour
         stateMachine = new StateMachine<AI>(this);
         stateMachine.ChangeState(patrolState);
 
-        currentHealth = health;
-        healthBar.SetMaxHealth(health);
+        currentHealth = maxHealth;
+        healthBar.SetMaxHealth(maxHealth);
     }
 
     private void Update()
@@ -132,6 +132,8 @@ public class AI : NetworkBehaviour
         {
             animator.SetTrigger(StringData.death);
             yield return new WaitForSeconds(delay);
+            Spawner.SpawnWhenDied(1);
+            Restore(gameObject);
             ObjectPool.Despawn(gameObject);
         }
     }
@@ -170,6 +172,21 @@ public class AI : NetworkBehaviour
         if (Mathf.Abs(dir.x) > Mathf.Epsilon)
         {
             spriteRenderer.flipX = dir.x > 0f;
+        }
+    }
+
+    // When despawning a killed enemy, restore its health so next time it wont spawn with 0 health
+    private void RestoreHealth(GameObject enemy)
+    {
+        var oldAI = enemy.GetComponent<AI>();
+
+        if (oldAI != null)
+        {
+            if (oldAI.currentHealth <= 0f)
+            {
+                oldAI.currentHealth = oldAI.maxHealth;
+                healthBar.SetHealth(oldAI.currentHealth);
+            }
         }
     }
 

@@ -7,6 +7,7 @@ using Mirror;
 public class Player : NetworkBehaviour
 {
     [Header("Player Components")]
+    public NetworkIdentity prefab;
     public PlayerController controller;
     public Camera playerCamera;
     public Animator animator;
@@ -91,10 +92,6 @@ public class Player : NetworkBehaviour
     private void SetupComponents()
     {
         if (spawnPoint)
-        {
-            transform.position = spawnPoint.position;
-        }
-        else
         {
             transform.position = new Vector3(0, 10, 0);
         }
@@ -363,8 +360,17 @@ public class Player : NetworkBehaviour
             GetComponent<BoxCollider2D>().isTrigger = true;
             GetComponent<Rigidbody2D>().constraints = RigidbodyConstraints2D.FreezeAll;
 
-            NetworkServer.UnSpawn(gameObject);
+            //NetworkServer.UnSpawn(gameObject);
+            yield return new WaitForSeconds(delay);
+            //RpcRespawn();
         }
+    }
+
+    [ClientRpc]
+    private void RpcRespawn()
+    {
+        GameObject newP = Instantiate(prefab.gameObject, spawnPoint.position, Quaternion.identity);
+        NetworkServer.Spawn(newP, connectionToClient);
     }
 
     [Command]
