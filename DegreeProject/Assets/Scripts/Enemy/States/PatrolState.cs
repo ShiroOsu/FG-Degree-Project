@@ -53,7 +53,7 @@ public class PatrolState : iState<AI>
 
             if (player != null && player.GetHP > 0f)
             {
-                owner.playerObject = col.gameObject;
+                owner.playerObject = player.gameObject;
                 return;
             }
         }
@@ -97,9 +97,11 @@ public class PatrolState : iState<AI>
             }
             else { rightWall = false; }
 
-            if (hitE.collider != null)
+            var otherEnemy = hitE.collider;
+
+            if (otherEnemy != null)
             {
-                if ((hitE.collider.name != owner.name))
+                if (otherEnemy.name != owner.name)
                 {
                     rightWall = true;
                 }
@@ -120,9 +122,11 @@ public class PatrolState : iState<AI>
             }
             else { leftWall = false; }
 
-            if (hitE.collider != null)
+            var otherEnemy = hitE.collider;
+
+            if (otherEnemy != null)
             {
-                if ((hitE.collider.name != owner.name))
+                if (otherEnemy.name != owner.name)
                 {
                     leftWall = true;
                 }
