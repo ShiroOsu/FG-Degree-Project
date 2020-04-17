@@ -81,17 +81,13 @@ public class AI : NetworkBehaviour
 
     public void PatrolMove(Vector2 direction)
     {
-        transform.Translate(direction * speed * Time.deltaTime);
-
+        RpcAIPatrol(direction);
         RpcAnimState(AnimState.run);
     }
 
     public void FollowMove()
     {
-        // Move towards playerObjects location (x axis)
-        transform.position = Vector2.MoveTowards(transform.position,
-            new Vector2(playerObject.transform.position.x, transform.position.y), speed * Time.deltaTime);
-
+        RpcAIFollow();
         RpcAnimState(AnimState.run);
     }
 
@@ -130,10 +126,11 @@ public class AI : NetworkBehaviour
     {
         if (gameObject != null)
         {
+            animator.StopPlayback(); // Stop current animation?
             animator.SetTrigger(StringData.death);
             yield return new WaitForSeconds(delay);
             Spawner.SpawnWhenDied(1);
-            Restore(gameObject);
+            RestoreHealth(gameObject);
             ObjectPool.Despawn(gameObject);
         }
     }
@@ -175,7 +172,7 @@ public class AI : NetworkBehaviour
         }
     }
 
-    // When despawning a killed enemy, restore its health so next time it wont spawn with 0 health
+    // When de-spawning a killed enemy, restore its health so next time it wont spawn with 0 health
     private void RestoreHealth(GameObject enemy)
     {
         var oldAI = enemy.GetComponent<AI>();
@@ -188,6 +185,20 @@ public class AI : NetworkBehaviour
                 healthBar.SetHealth(oldAI.currentHealth);
             }
         }
+    }
+
+    [ClientRpc]
+    private void RpcAIFollow()
+    {
+        // Move towards playerObjects location (x axis)
+        transform.position = Vector2.MoveTowards(transform.position,
+            new Vector2(playerObject.transform.position.x, transform.position.y), speed * Time.deltaTime);
+    }
+
+    [ClientRpc]
+    private void RpcAIPatrol(Vector2 direction)
+    {
+        transform.Translate(direction * speed * Time.deltaTime);
     }
 
     [ClientRpc]
