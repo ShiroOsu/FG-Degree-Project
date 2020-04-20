@@ -1,4 +1,5 @@
 ﻿#define DEBUG
+#undef DEBUG
 
 using UnityEngine;
 using Mirror;
@@ -7,8 +8,8 @@ using System.Collections;
 public class AI : NetworkBehaviour
 {
     [Header("AI Settings")]
-    [SerializeField] private float health = 10f;
-    [SyncVar] private float currentHealth;
+    public float maxHealth = 10f;
+    [SyncVar] public float currentHealth;
     [SerializeField] private float speed = 2f;
     public float damage = 1f;
     public Transform attackPointRight;
@@ -47,9 +48,9 @@ public class AI : NetworkBehaviour
 
     private void Start()
     {
-        followState = GetComponent<FollowState>();
-        patrolState = GetComponent<PatrolState>();
-        attackState = GetComponent<AttackState>();
+        followState = new FollowState();
+        patrolState = new PatrolState();
+        attackState = new AttackState();
 
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
@@ -57,8 +58,8 @@ public class AI : NetworkBehaviour
         stateMachine = new StateMachine<AI>(this);
         stateMachine.ChangeState(patrolState);
 
-        currentHealth = health;
-        healthBar.SetMaxHealth(health);
+        currentHealth = maxHealth;
+        healthBar.SetMaxHealth(maxHealth);
     }
 
     private void Update()
@@ -80,18 +81,14 @@ public class AI : NetworkBehaviour
 
     public void PatrolMove(Vector2 direction)
     {
-        transform.Translate(direction * speed * Time.deltaTime);
-
-        animator.SetInteger(StringData.animState, (int)AnimState.run);
+        RpcAIPatrol(direction);
+        RpcAnimState(AnimState.run);
     }
 
     public void FollowMove()
     {
-        // Move towards playerObjects location (x axis)
-        transform.position = Vector2.MoveTowards(transform.position,
-            new Vector2(playerObject.transform.position.x, transform.position.y), speed * Time.deltaTime);
-
-        animator.SetInteger(StringData.animState, (int)AnimState.run);
+        RpcAIFollow();
+        RpcAnimState(AnimState.run);
     }
 
     public void TakeDamage(float damage)
@@ -101,22 +98,16 @@ public class AI : NetworkBehaviour
         
         if (currentHealth <= 0f)
         {
-            StartCoroutine(Die(1f));
+            RpcDieAnimation();
             return;
         }
 
         if (currentHealth > 0f & !hurtCd)
         {
-            RpcCall();
+            RpcHurtAnimation();
             hurtCd = true;
             StartCoroutine(HurtAnimCd(1.5f));
         }
-    }
-
-    [ClientRpc]
-    private void RpcCall()
-    {
-        StartCoroutine(HurtAnimation(0.5f));
     }
 
     private IEnumerator HurtAnimCd(float seconds)
@@ -135,9 +126,12 @@ public class AI : NetworkBehaviour
     {
         if (gameObject != null)
         {
+            animator.StopPlayback(); // Stop current animation?
             animator.SetTrigger(StringData.death);
             yield return new WaitForSeconds(delay);
-            NetworkServer.Destroy(gameObject);
+            Spawner.SpawnWhenDied(1);
+            RestoreHealth(gameObject);
+            ObjectPool.Despawn(gameObject);
         }
     }
 
@@ -148,7 +142,7 @@ public class AI : NetworkBehaviour
 
     public void AttackAnimation()
     {
-        animator.SetTrigger(StringData.attack);
+        RpcAttackAnimation();
     }
 
     public void SetDirection(Vector2 direction)
@@ -178,14 +172,68 @@ public class AI : NetworkBehaviour
         }
     }
 
+    // When de-spawning a killed enemy, restore its health so next time it wont spawn with 0 health
+    private void RestoreHealth(GameObject enemy)
+    {
+        var oldAI = enemy.GetComponent<AI>();
+
+        if (oldAI != null)
+        {
+            if (oldAI.currentHealth <= 0f)
+            {
+                oldAI.currentHealth = oldAI.maxHealth;
+                healthBar.SetHealth(oldAI.currentHealth);
+            }
+        }
+    }
+
+    [ClientRpc]
+    private void RpcAIFollow()
+    {
+        // Move towards playerObjects location (x axis)
+        transform.position = Vector2.MoveTowards(transform.position,
+            new Vector2(playerObject.transform.position.x, transform.position.y), speed * Time.deltaTime);
+    }
+
+    [ClientRpc]
+    private void RpcAIPatrol(Vector2 direction)
+    {
+        transform.Translate(direction * speed * Time.deltaTime);
+    }
+
+    [ClientRpc]
+    private void RpcHurtAnimation()
+    {
+        StartCoroutine(HurtAnimation(0.5f));
+    }
+
+    [ClientRpc]
+    private void RpcDieAnimation()
+    {
+        StartCoroutine(Die(1f));
+    }
+
+    [ClientRpc]
+    public void RpcAttackAnimation()
+    {
+        animator.SetTrigger(StringData.attack);
+    }
+
+    [ClientRpc]
+    public void RpcAnimState(AnimState animation)
+    {
+        animator.SetInteger(StringData.animState, (int)animation);
+    }
+
 #if DEBUG
     private void OnDrawGizmos()
     {
         Gizmos.DrawWireSphere(gameObject.transform.position, detectionRadius);
         Gizmos.DrawWireSphere(gameObject.transform.position, maxDetectionDistance);
-
         Gizmos.DrawWireCube(new Vector3(transform.position.x - 0.5f, transform.position.y + 0.65f, 0f), new Vector3(0.15f, 1.15f, 0f));
         Gizmos.DrawWireCube(new Vector3(transform.position.x + 0.5f, transform.position.y + 0.65f, 0f), new Vector3(0.15f, 1.15f, 0f));
+        Gizmos.DrawWireCube(new Vector2(transform.position.x + 0.5f, transform.position.y + 0.65f), new Vector2(0.15f, 1.15f));
+        Gizmos.DrawWireCube(new Vector2(transform.position.x - 0.5f, transform.position.y + 0.65f), new Vector2(0.15f, 1.15f));
     }
 #endif
 }

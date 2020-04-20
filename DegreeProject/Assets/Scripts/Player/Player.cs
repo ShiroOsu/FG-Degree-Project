@@ -7,6 +7,7 @@ using Mirror;
 public class Player : NetworkBehaviour
 {
     [Header("Player Components")]
+    public NetworkIdentity prefab;
     public PlayerController controller;
     public Camera playerCamera;
     public Animator animator;
@@ -58,6 +59,7 @@ public class Player : NetworkBehaviour
 
     public float GetHP => currentHealth;
     public Vector2 GetDirInput => directionalInput;
+    private Vector2 lastDirInput;
 
     private const float maxJumpMultiplier = 0.6f;
     private const float minJumpMultiplier = 0.035f;
@@ -90,10 +92,6 @@ public class Player : NetworkBehaviour
     private void SetupComponents()
     {
         if (spawnPoint)
-        {
-            transform.position = spawnPoint.position;
-        }
-        else
         {
             transform.position = new Vector3(0, 10, 0);
         }
@@ -226,6 +224,11 @@ public class Player : NetworkBehaviour
 
     private void SetDirectionalInput(Vector2 directionalInput)
     {
+        if (directionalInput.x != 0f)
+        {
+            lastDirInput = this.directionalInput;
+        }
+
         this.directionalInput = directionalInput;
     }
 
@@ -249,7 +252,7 @@ public class Player : NetworkBehaviour
 
     private void OnAttackInputDown()
     {
-        var point = GetDirInput.x > 0f ? attackPointRight.position : attackPointLeft.position;
+        var point = lastDirInput.x > 0f ? attackPointRight.position : attackPointLeft.position;
 
         if (!AnimationIsPlaying(StringData.attack))
         {
@@ -357,8 +360,17 @@ public class Player : NetworkBehaviour
             GetComponent<BoxCollider2D>().isTrigger = true;
             GetComponent<Rigidbody2D>().constraints = RigidbodyConstraints2D.FreezeAll;
 
-            NetworkServer.UnSpawn(gameObject);
+            //NetworkServer.UnSpawn(gameObject);
+            yield return new WaitForSeconds(delay);
+            //RpcRespawn();
         }
+    }
+
+    [ClientRpc]
+    private void RpcRespawn()
+    {
+        GameObject newP = Instantiate(prefab.gameObject, spawnPoint.position, Quaternion.identity);
+        NetworkServer.Spawn(newP, connectionToClient);
     }
 
     [Command]
@@ -389,12 +401,6 @@ public class Player : NetworkBehaviour
     public void CmdOnJumpInputUp()
     {
         RpcOnJumpinputUp();
-    }
-
-    [ClientRpc]
-    private void RpcUpdateMovement()
-    {
-        UpdateMovement();
     }
 
     [ClientRpc]

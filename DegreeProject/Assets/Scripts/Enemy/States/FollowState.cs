@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class FollowState : MonoBehaviour, iState<AI>
+public class FollowState : iState<AI>
 {
     public void EnterState(AI owner)
     {
@@ -26,7 +26,6 @@ public class FollowState : MonoBehaviour, iState<AI>
         }
     }
 
-    // Move functions should move to AI script probably.
     private void FollowPlayer(AI owner)
     {
         // Stop in front of player
