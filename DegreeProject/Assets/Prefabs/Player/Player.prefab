@@ -164,9 +164,9 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.016
   clientAuthority: 0
-  localPositionSensitivity: 0.01
-  localRotationSensitivity: 0.01
-  localScaleSensitivity: 0.01
+  localPositionSensitivity: 0.001
+  localRotationSensitivity: 0.001
+  localScaleSensitivity: 0.001
   compressRotation: 1
 --- !u!61 &7343355427558365897
 BoxCollider2D:
@@ -236,7 +236,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   syncMode: 0
-  syncInterval: 0.1
+  syncInterval: 0.016
   prefab: {fileID: 302475681486006492}
   controller: {fileID: 8615055910702153715}
   playerCamera: {fileID: 4345298095977105852}

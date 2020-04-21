@@ -6,8 +6,7 @@ public class PatrolState : iState<AI>
     private bool leftWall;
     private Vector2 direction;
     private Vector2 boxSize = new Vector2(0.15f, 1.15f);
-    private string[] ground = { StringData.groundLayer };
-    private string[] enemy = { StringData.enemyLayer };
+    private float distance = 0.15f;
 
     public void EnterState(AI owner)
     {
@@ -80,58 +79,32 @@ public class PatrolState : iState<AI>
     {
         Vector2 originRight = new Vector2(owner.transform.position.x + 0.5f, owner.transform.position.y + 0.65f);
         Vector2 originLeft = new Vector2(owner.transform.position.x - 0.5f, owner.transform.position.y + 0.65f);
-        float distance = 0.15f;
+        Vector2 origin = direction.x == 1 ? originRight : originLeft;
 
-        // Right 
+        RayAndBoxCast(owner, origin, direction, boxSize, distance);
+    }
+
+    private void RayAndBoxCast(AI owner, Vector2 origin, Vector2 direction, Vector2 boxSize, float distance)
+    {
+        if (direction.x == 1)
+            distance = 0.3f;
+
+        RaycastHit2D wallHit = Physics2D.BoxCast(origin, boxSize, 0f, direction, distance, owner.groundMask);
+        RaycastHit2D enemyHit = Physics2D.Raycast(origin, direction, distance, owner.enemyMask);
+
+        if (wallHit)
         {
-            Vector2 direction = Vector2.right;
-
-            RaycastHit2D hit = Physics2D.BoxCast(originRight, boxSize, 0f, direction, distance, LayerMask.GetMask(ground));
-
-            // On the right side of the enemy the distance of the ray needs to be longer because otherwise it wont hit
-            RaycastHit2D hitE = Physics2D.Raycast(originRight, direction, 0.3f, LayerMask.GetMask(enemy));
-
-            if (hit)
-            {
-                rightWall = true;
-            }
-            else { rightWall = false; }
-
-            var otherEnemy = hitE.collider;
-
-            if (otherEnemy != null)
-            {
-                if (otherEnemy.name != owner.name)
-                {
-                    rightWall = true;
-                }
-                else { rightWall = false; }
-            }
+            rightWall = direction.x == 1;
+            leftWall = direction.x == -1;
         }
 
-        // Left 
+        if (enemyHit.collider != null)
         {
-            Vector2 direction = Vector2.left;
+            var enemyID = enemyHit.collider.gameObject.GetInstanceID();
+            var thisID = owner.gameObject.GetInstanceID();
 
-            RaycastHit2D hit = Physics2D.BoxCast(originLeft, boxSize, 0f, direction, distance, LayerMask.GetMask(ground));
-            RaycastHit2D hitE = Physics2D.Raycast(originLeft, direction, distance, LayerMask.GetMask(enemy));
-
-            if (hit)
-            {
-                leftWall = true;
-            }
-            else { leftWall = false; }
-
-            var otherEnemy = hitE.collider;
-
-            if (otherEnemy != null)
-            {
-                if (otherEnemy.name != owner.name)
-                {
-                    leftWall = true;
-                }
-                else { leftWall = false; }
-            }
+            rightWall = enemyID != thisID && direction.x == 1;
+            leftWall = enemyID != thisID && direction.x == -1;
         }
     }
 }

@@ -61,7 +61,7 @@ public class Player : NetworkBehaviour
     public Vector2 GetDirInput => directionalInput;
     private Vector2 lastDirInput;
 
-    private const float maxJumpMultiplier = 0.6f;
+    private const float maxJumpMultiplier = 0.75f;
     private const float minJumpMultiplier = 0.035f;
 
     // Instead of color, "Player 1, Player 2" or etc.
