@@ -86,6 +86,7 @@ public class PatrolState : iState<AI>
 
     private void RayAndBoxCast(AI owner, Vector2 origin, Vector2 direction, Vector2 boxSize, float distance)
     {
+        // Don't know why but the 'right' ray-cast distance needs to be longer.
         if (direction.x == 1)
             distance = 0.3f;
 

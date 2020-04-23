@@ -352,8 +352,9 @@ public class Player : NetworkBehaviour
 
     private IEnumerator Die(float delay)
     {
-        if (gameObject != null)
-        {
+        if (gameObject == null)
+            yield break;
+
             animator.SetTrigger(StringData.death);
             yield return new WaitForSeconds(delay);
 
@@ -363,7 +364,6 @@ public class Player : NetworkBehaviour
             //NetworkServer.UnSpawn(gameObject);
             yield return new WaitForSeconds(delay);
             //RpcRespawn();
-        }
     }
 
     [ClientRpc]
