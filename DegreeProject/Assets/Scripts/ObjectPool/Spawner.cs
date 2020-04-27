@@ -11,12 +11,12 @@ public class Spawner : NetworkBehaviour
 
     public List<Transform> spawnPos;
 
-    private int p = 0;
+    private int point = 0;
     private WaitForSeconds wait;
 
     private static GameObject s_prefab;
     private static List<Transform> s_spawnPos;
-    private static int s_p = 0;
+    private static int s_point = 0;
 
     public override void OnStartServer()
     {
@@ -32,14 +32,14 @@ public class Spawner : NetworkBehaviour
     {
         for (int i = 0; i < amountToSpawn; i++)
         {
-            if (p >= spawnPos.Count)
+            if (point >= spawnPos.Count)
             {
-                p = 0;
+                point = 0;
             }
 
-            Spawn(spawnPos[p].position);
+            Spawn(spawnPos[point].position);
 
-            p++;
+            point++;
             yield return wait;
         }
     }
@@ -53,16 +53,16 @@ public class Spawner : NetworkBehaviour
     {
         for (int i = 0; i < amount; i++)
         {
-            if (s_p >= s_spawnPos.Count)
+            if (s_point >= s_spawnPos.Count)
             {
-                s_p = 0;
+                s_point = 0;
             }
 
-            var newEnemy = ObjectPool.Spawn(s_prefab, s_spawnPos[s_p].position);
+            var newEnemy = ObjectPool.Spawn(s_prefab, s_spawnPos[s_point].position);
 
             NetworkServer.Spawn(newEnemy);
 
-            s_p++;
+            s_point++;
         }
     }
 }

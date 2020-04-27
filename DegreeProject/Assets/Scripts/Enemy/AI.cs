@@ -38,6 +38,11 @@ public class AI : NetworkBehaviour
     public AttackState attackState { get; private set; }
     public Animator animator { get; private set; }
     public SpriteRenderer spriteRenderer { get; private set; }
+    public LayerMask enemyMask { get; private set; }
+    public LayerMask groundMask { get; private set; }
+
+    private string[] ground = { StringData.groundLayer };
+    private string[] enemy = { StringData.enemyLayer };
 
     public enum AnimState
     {
@@ -57,6 +62,9 @@ public class AI : NetworkBehaviour
 
         stateMachine = new StateMachine<AI>(this);
         stateMachine.ChangeState(patrolState);
+
+        enemyMask = LayerMask.GetMask(enemy);
+        groundMask = LayerMask.GetMask(ground);
 
         currentHealth = maxHealth;
         healthBar.SetMaxHealth(maxHealth);
@@ -95,7 +103,7 @@ public class AI : NetworkBehaviour
     {
         currentHealth -= damage;
         healthBar.SetHealth(currentHealth);
-        
+
         if (currentHealth <= 0f)
         {
             RpcDieAnimation();
@@ -116,23 +124,22 @@ public class AI : NetworkBehaviour
         hurtCd = false;
     }
 
-    private IEnumerator HurtAnimation(float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        animator.SetTrigger(StringData.hurt);
-    }
-
     private IEnumerator Die(float delay)
     {
-        if (gameObject != null)
-        {
-            animator.StopPlayback(); // Stop current animation?
-            animator.SetTrigger(StringData.death);
-            yield return new WaitForSeconds(delay);
-            Spawner.SpawnWhenDied(1);
-            RestoreHealth(gameObject);
-            ObjectPool.Despawn(gameObject);
-        }
+        if (gameObject == null)
+            yield break;
+
+        animator.StopPlayback(); // Stop current animation?
+        animator.SetTrigger(StringData.death);
+        yield return new WaitForSeconds(delay);
+        Spawner.SpawnWhenDied(1);
+        RestoreHealth(gameObject);
+        ObjectPool.Despawn(gameObject);
+    }
+
+    private void HurtAnimation()
+    {
+        animator.SetTrigger(StringData.hurt);
     }
 
     public bool AnimationIsPlaying(string state)
@@ -204,7 +211,7 @@ public class AI : NetworkBehaviour
     [ClientRpc]
     private void RpcHurtAnimation()
     {
-        StartCoroutine(HurtAnimation(0.5f));
+        HurtAnimation();
     }
 
     [ClientRpc]
